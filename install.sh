@@ -104,6 +104,11 @@ function install_agent {
     fi
 
     # codegen python bindings
+    if ! mkdir -p "${PROTO_GEN_PY}"; then
+        printf "\n>\tFailed to create gRPC codegen directory at %s\n" "${PROTO_GEN_PY}"
+        print_install_result_and_exit 9;
+    fi
+
     printf "\n>\tCompiling gRPC protobuf files...\n"
     GEN_PROTO_GRPC="python -m grpc_tools.protoc --proto_path=${PROTO_SRC} --python_out=${PROTO_GEN_PY} --grpc_python_out=${PROTO_GEN_PY} ${PROTO_SRC}/base/climate.proto"
     if ! ${GEN_PROTO_GRPC}; then
