@@ -4,8 +4,15 @@ import os
 import config
 import base.climate_pb2_grpc as climate_grpc
 
+HOMECONTROL_ROOT_ENV = 'HOMECONTROL'
 
-def agent_sample_setup(root_directory):
+
+def agent_sample_setup():
+    root_directory = os.getenv(HOMECONTROL_ROOT_ENV)
+    if not os.path.isdir(root_directory):
+        print('Unable to resolve homecontrol root directory from environment variables. Use launch.sh to run agent');
+        sys.exit(1)
+
     agent_config_file = os.path.join(root_directory, 'agent/conf/agent.conf')
     agent_config = config.read_config(agent_config_file)
     base_host_address = agent_config.get(config.BASE_SERVER, 'address')
@@ -26,14 +33,4 @@ def print_usage():
 
 
 if __name__ == '__main__':
-    if len(sys.argv) != 2:
-        print_usage()
-        sys.exit(1)
-
-    home_control_root = sys.argv[1]
-    if not os.path.isdir(home_control_root):
-        print('Invalid home-control-root: %s\n' % home_control_root)
-        print_usage()
-        sys.exit(2)
-
-    agent_sample_setup(home_control_root)
+    agent_sample_setup()

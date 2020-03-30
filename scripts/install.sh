@@ -1,20 +1,14 @@
 #!/bin/bash
 
-# script argument constants
-AGENT="agent"
-BASE="base"
-
-# Supported OS constants
-LINUX="Linux"
-MAC="MacOS"
-
-# Repo root directory name
-EXPECTED_DIRECTORY="homecontrol"
-
-function print_supported_directives {
-    printf "Supported directives:\n"
-    printf "   %s\n" ${AGENT} ${BASE}
-}
+# Ensure that we are in the root directory and source utils.sh
+readonly ROOT_DIR_NAME='homecontrol'
+current_dir=${PWD##*/}
+if [[ "${current_dir}" != "${ROOT_DIR_NAME}" ]]; then
+    printf "\n>\tCurrent directory must be \"%s\" root. cd to that directory to install homecontrol\n" "${ROOT_DIR_NAME}";
+    exit 1
+fi
+readonly UTILS=$(pwd)/scripts/utils.sh
+source "${UTILS}"
 
 function print_install_banner {
     printf "\n======================================================"
@@ -44,16 +38,7 @@ function resolve_OS {
     echo "${machine}"
 }
 
-function set_environment_vars {
-    current_dir=${PWD##*/}
-    if [[ "${current_dir}" != ${EXPECTED_DIRECTORY} ]]; then
-        printf "\n>\tCurrent directory must be \"%s\" root. cd to that directory to install homecontrol\n" "${EXPECTED_DIRECTORY}";
-        return 1
-    else
-        export HOMECONTROL=$(pwd)
-        return 0
-    fi
-}
+
 
 function install_agent {
     OS=$1;
@@ -71,9 +56,6 @@ function install_agent {
     if ! set_environment_vars; then
         print_install_result_and_exit 4;
     fi
-    PROTO_SRC_DIR=${HOMECONTROL}/protocol/src/main/proto
-    PROTO_GEN_PYTHON_DIR=${HOMECONTROL}/protocol/build/gen/python
-    AGENT_VENV=${HOMECONTROL}/agent/venv
 
     # install virtualenv
     if ! pip install virtualenv --user; then
@@ -93,14 +75,11 @@ function install_agent {
 
     # activate venv
     printf "\n>\tActivating venv...\n"
-    if ! source "${AGENT_VENV}/bin/activate"; then
-        printf "\n>\tfailed to activate venv\n"
-        print_install_result_and_exit 7;
-    fi
+    activate_venv;
 
     printf "\n>\tInstalling agent requirements.txt...\n"
     # install requirements.txt
-    if ! pip install -r "${HOMECONTROL}"/agent/requirements.txt; then
+    if ! pip install -r "${AGENT_DIR}"/requirements.txt; then
         printf "\n>\tfailed to install requirements.txt\n"
         print_install_result_and_exit 8;
     fi

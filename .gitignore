@@ -2,3 +2,4 @@
 protocol/build/*
 agent/venv/*
 *__pycache__
+agent/run/*
