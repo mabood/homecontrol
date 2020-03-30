@@ -1,0 +1,67 @@
+//
+// Home Control - Climate
+// Created by Michael Abood on 03/28/20
+//
+//    This file is part of Home Control.
+//
+//    Home Control is free software: you can redistribute it and/or modify
+//    it under the terms of the GNU General Public License as published by
+//    the Free Software Foundation, either version 3 of the License, or
+//    (at your option) any later version.
+//
+//    Home Control is distributed in the hope that it will be useful,
+//    but WITHOUT ANY WARRANTY; without even the implied warranty of
+//    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+//    GNU General Public License for more details.
+//
+//    You should have received a copy of the GNU General Public License
+//    along with Home Control.  If not, see <https://www.gnu.org/licenses/>.
+//
+
+syntax = "proto3";
+
+import "google/protobuf/timestamp.proto";
+
+package homecontrol.base;
+
+/*
+ * ClimateStats service definition
+ *
+ * This service is designed for agents to report stats about the local climate
+ * to the base. For example, agents equipped with temperature probes collect
+ * TemperaturePoint data and report it to the base using ClimateStats service.
+ */
+service ClimateStats {
+
+  /*
+   * rpc method to stream TemperaturePoint data to the base.
+   *
+   * Streaming functionality enables agents to submit TemperaturePoints in batches,
+   * minimizing the frequency of network transmission and enabling retry submission
+   * of data which may have initially failed to be accepted by the base server.
+   */
+  rpc ReportTemperature(stream TemperaturePoint) returns (ClimateResponse) {}
+
+}
+
+/*
+ * TemperaturePoint message includes a celsius value and the timestamp indicating
+ * the time at which the temperature value was recorded.
+ */
+message TemperaturePoint {
+  google.protobuf.Timestamp recorded_timestamp = 1;
+  float recorded_temperature_celsius = 2;
+}
+
+
+enum ClimateResponseStatus {
+  UNKNOWN = 0;
+  ACCEPTED = 1;
+}
+
+message ClimateResponse {
+  ClimateResponseStatus status = 1;
+  string message = 2;
+}
+
+
