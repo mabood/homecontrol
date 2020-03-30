@@ -57,6 +57,7 @@ function install_agent {
         print_install_result_and_exit 4;
     fi
 
+    prinf "\n>\tSetting up virtualenv...\n"
     # install virtualenv
     if ! pip install virtualenv --user; then
         printf "\n>\tvirtualenv installation failed.\n"
