@@ -1,3 +1,4 @@
 .idea/*
 protocol/build/*
 agent/venv/*
+*__pycache__
