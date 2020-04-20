@@ -24,22 +24,27 @@ import os
 import logging
 import utils
 import constants
+from sensors import SensorManager
 from climate_client import ClimateClient
 from configparser import ConfigParser
 
 
 def agent_main():
+    # Resolve homecontrol root directory absolute path
     root_directory = os.getenv(constants.HOMECONTROL_ROOT_ENVIRONMENT_VAR)
     if not root_directory or not os.path.isdir(root_directory):
         print('Unable to resolve homecontrol root directory from environment variables. Use launch.sh to run agent')
         sys.exit(1)
 
+    # Setup logging
     log_directory = os.getenv(constants.AGENT_RUN_DIR_ENVIRONMENT_VAR)
     if not log_directory or not os.path.isdir(log_directory):
         print('Unable to resolve agent run directory from environment variables')
         sys.exit(1)
+
     utils.setup_logger(constants.AGENT_APP_NAME, log_directory)
 
+    # Setup config
     agent_config_file = os.path.join(root_directory, constants.AGENT_CONFIG_PATH)
     if not agent_config_file or not os.path.isfile(agent_config_file):
         logging.error('Failed to resolve agent config file at relative path %s' % constants.AGENT_CONFIG_PATH)
@@ -48,6 +53,7 @@ def agent_main():
     config = ConfigParser()
     config.read(agent_config_file)
 
+    # Setup gRPC channel to homecontrol base
     base_host_address = config.get(constants.AGENT_CONFIG_SECTION_BASE_SERVER, constants.AGENT_CONFIG_KEY_ADDRESS)
     if base_host_address is None:
         logging.error('Failed to resolve base host from agent config.')
@@ -61,7 +67,12 @@ def agent_main():
     base_channel = grpc.insecure_channel(base_host_address + ':' + base_host_grpc_port)
     logging.info('gRPC channel initialized using address: %s and port %s' % (base_host_address, base_host_grpc_port))
 
-    if config.getboolean(constants.AGENT_CONFIG_SECTION_CLIMATE, constants.AGENT_CONFIG_KEY_ENABLED):
+    # Start sensor data collection
+    sensors = SensorManager(config[constants.AGENT_CONFIG_SECTION_SENSORS])
+
+    # Start agent services
+    if config.getboolean(constants.AGENT_CONFIG_SECTION_SERVICES, constants.AGENT_CONFIG_KEY_CLIMATE):
+        logging.info("Starting climate client...")
         ClimateClient(base_channel).run()
 
 

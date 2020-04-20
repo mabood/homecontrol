@@ -29,5 +29,4 @@ class ClimateClient(object):
         self.channel = server_grpc_channel
 
     def run(self):
-        logging.info("Starting climate client...")
         timestamp = Timestamp()

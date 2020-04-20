@@ -76,6 +76,7 @@ function install_agent {
 
     # activate venv
     printf "\n>\tActivating venv...\n"
+
     activate_venv;
 
     printf "\n>\tInstalling agent requirements.txt...\n"
