@@ -19,13 +19,12 @@
 #
 
 import sys
-import grpc
 import os
 import logging
 import utils
 import constants
 from sensors import SensorManager
-from climate_client import ClimateClient
+from services import ServiceManager
 from configparser import ConfigParser
 
 
@@ -53,27 +52,13 @@ def agent_main():
     config = ConfigParser()
     config.read(agent_config_file)
 
-    # Setup gRPC channel to homecontrol base
-    base_host_address = config.get(constants.AGENT_CONFIG_SECTION_BASE_SERVER, constants.AGENT_CONFIG_KEY_ADDRESS)
-    if base_host_address is None:
-        logging.error('Failed to resolve base host from agent config.')
-        sys.exit(3)
-
-    base_host_grpc_port = config.get(constants.AGENT_CONFIG_SECTION_BASE_SERVER, constants.AGENT_CONFIG_KEY_GRPC_PORT)
-    if base_host_grpc_port is None:
-        logging.error('Failed to resolve base host gRPC port from agent config.')
-        sys.exit(4)
-
-    base_channel = grpc.insecure_channel(base_host_address + ':' + base_host_grpc_port)
-    logging.info('gRPC channel initialized using address: %s and port %s' % (base_host_address, base_host_grpc_port))
-
     # Start sensor data collection
-    sensors = SensorManager(config[constants.AGENT_CONFIG_SECTION_SENSORS])
+    sensors = SensorManager(config)
+    sensors.start_collection()
 
     # Start agent services
-    if config.getboolean(constants.AGENT_CONFIG_SECTION_SERVICES, constants.AGENT_CONFIG_KEY_CLIMATE):
-        logging.info("Starting climate client...")
-        ClimateClient(base_channel).run()
+    services = ServiceManager(config)
+    services.start_services()
 
 
 if __name__ == '__main__':
