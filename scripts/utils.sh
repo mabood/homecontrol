@@ -28,8 +28,10 @@ function set_environment_vars {
         export PROTOCOL_DIR=${HOMECONTROL}/protocol
         export PROTO_SRC_DIR=${PROTOCOL_DIR}/src/main/proto
         export PROTO_GEN_PYTHON_DIR=${PROTOCOL_DIR}/build/gen/python
+        export CORE_DIR=${HOMECONTROL}/core
+        export CORE_SRC_DIR=${CORE_DIR}/src/main/python
         export AGENT_RUN_DIR=${AGENT_DIR}/run
-        export AGENT_RUN_PID_FILE="${AGENT_RUN_DIR}/${AGENT}.pid"
+        export AGENT_RUN_PID_FILE="${AGENT_RUN_DIR}/pid"
 
         return 0
     fi

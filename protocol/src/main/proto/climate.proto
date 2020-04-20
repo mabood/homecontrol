@@ -22,16 +22,16 @@ syntax = "proto3";
 
 import "google/protobuf/timestamp.proto";
 
-package homecontrol.base;
+package homecontrol.service;
 
 /*
- * ClimateStats service definition
+ * Climate service definition
  *
  * This service is designed for agents to report stats about the local climate
  * to the base. For example, agents equipped with temperature probes collect
  * TemperaturePoint data and report it to the base using ClimateStats service.
  */
-service ClimateStats {
+service Climate {
 
   /*
    * rpc method to stream TemperaturePoint data to the base.
