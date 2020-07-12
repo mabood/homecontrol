@@ -73,6 +73,7 @@ class ServiceManager(object):
 
 class ClimateClient(object):
     def __init__(self, server_grpc_channel, config):
+        self.config = config
         self.channel = server_grpc_channel
         self.thermometer = sensors.Thermometer.make(config)
         self.interval_timer = None
@@ -86,8 +87,8 @@ class ClimateClient(object):
             return
 
         # Schedule interval job
-        poll_interval = config.get(constants.AGENT_CONFIG_SECTION_SERVICES, 
-                                   constants.AGENT_CONFIG_KEY_CLIMATE_POLL_INTERVAL_S)
+        poll_interval = self.config.get(constants.AGENT_CONFIG_SECTION_SERVICES, 
+                                        constants.AGENT_CONFIG_KEY_CLIMATE_POLL_INTERVAL_S)
         logging.info('Begin polling thermometer on interval of %f seconds' % poll_interval)
         self.interval_timer = IntervalTimer.IntervalTimer(float(poll_interval), self.log_temp_c)
         self.interval_timer.start()
