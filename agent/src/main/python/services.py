@@ -98,7 +98,12 @@ class ClimateClient(object):
             self.interval_timer.stop()
 
     def log_temp_c(self):
-        logging.info('current thermometer value (celsius): %s' % self.thermometer.read())
+        thermometer_value = self.thermometer.read()
+        if thermometer_value is None:
+            logging.error('Failed to read thermal sensor. stopping interval execution.')
+            self.interval_timer.stop()
+            return
+        logging.info('current thermometer value (celsius): %s' % thermometer_value)
 
 
 class IntervalTimer(object):

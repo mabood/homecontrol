@@ -42,7 +42,7 @@ class Thermometer(object):
 
     def read(self):
         try:
-            fd = open(self.full_path, 'r')
+            fd = open(self.device_path, 'r')
             slave_data = fd.read()
             if slave_data:
                 temp_c = slave_data[slave_data.index('t=') + 2:]
@@ -52,6 +52,6 @@ class Thermometer(object):
             else:
                 logging.error('Unable to parse temp - fd is None')
 
-        except IOError as e:
-            logging.error(e.message)
+        except Exception as e:
+            logging.error('Failed to read thermometer file: %s exception: %s' % self.device_path, e)
             return None
