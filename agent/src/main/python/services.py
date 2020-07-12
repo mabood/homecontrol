@@ -20,9 +20,11 @@
 
 import logging
 import constants
+import sensors
 import grpc
 import climate_pb2 as climate
 import climate_pb2_grpc as climate_grpc
+from threading import Timer
 from google.protobuf.timestamp_pb2 import Timestamp
 
 
@@ -39,7 +41,7 @@ class ServiceManager(object):
 
         if self.has_climate:
             logging.info('Climate service enabled in configs.')
-            self.climate = ClimateClient(self.channel)
+            self.climate = ClimateClient(self.channel, self.config)
 
     def initialize_grpc_channel(self):
         base_host_address = self.config.get(constants.AGENT_CONFIG_SECTION_BASE_SERVER,
@@ -70,9 +72,55 @@ class ServiceManager(object):
 
 
 class ClimateClient(object):
-    def __init__(self, server_grpc_channel):
+    def __init__(self, server_grpc_channel, config):
         self.channel = server_grpc_channel
+        self.thermometer = sensors.Thermometer.make(config)
+        self.interval_timer = None
 
     def start(self):
         timestamp = Timestamp()
-        logging.info('Starting Climate service client...')
+
+        # Check prerequisites
+        if self.thermometer is None:
+            logging.error('Failed to start Climate Client - thermometer is not setup. Check logs for exception.')
+            return
+
+        # Schedule interval job
+        poll_interval = config.get(constants.AGENT_CONFIG_SECTION_SERVICES, 
+                                   constants.AGENT_CONFIG_KEY_CLIMATE_POLL_INTERVAL_S)
+        logging.info('Begin polling thermometer on interval of %f seconds' % poll_interval)
+        self.interval_timer = IntervalTimer.IntervalTimer(float(poll_interval), self.log_temp_c)
+        self.interval_timer.start()
+        
+    def stop(self):
+        if self.interval_timer is not None:
+            self.interval_timer.stop()
+
+    def log_temp_c(self):
+        logging.info('current thermometer value (celsius): %s' % self.thermometer.read())
+
+
+class IntervalTimer(object):
+    def __init__(self, interval, function, *args, **kwargs):
+        self._timer = None
+        self.interval = interval
+        self.function = function
+        self.args = args
+        self.kwargs = kwargs
+        self.is_running = False
+        self.start()
+
+    def _run(self):
+        self.is_running = False
+        self.start()
+        self.function(*self.args, **self.kwargs)
+
+    def start(self):
+        if not self.is_running:
+            self._timer = Timer(self.interval, self._run)
+            self._timer.start()
+            self.is_running = True
+
+    def stop(self):
+        self._timer.cancel()
+        self.is_running = False

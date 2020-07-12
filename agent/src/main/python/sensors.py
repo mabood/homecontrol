@@ -23,27 +23,35 @@ import constants
 import os
 
 
-class SensorManager(object):
-    def __init__(self, config):
-        sensors_config = config[constants.AGENT_CONFIG_SECTION_SENSORS]
-        self.hasThermometer = eval(sensors_config[constants.AGENT_CONFIG_KEY_THERMOMETER])
-        if self.hasThermometer:
-            try:
-                self.thermometer = Thermometer(sensors_config[constants.AGENT_CONFIG_KEY_THERMOMETER_DIR],
-                                               sensors_config[constants.AGENT_CONFIG_KEY_THERMOMETER_FILE])
-            except Exception as e:
-                logging.error('Thermometer is enabled in configs, but failed to be discovered. Exception: %s' % e)
-                raise Exception(e)
-
-    def start_collection(self):
-        logging.info('Starting sensor data collection...')
-        if self.hasThermometer:
-            logging.info('Reading thermometer at path: %s' % self.thermometer.device_path)
-
-
 class Thermometer(object):
+    @staticmethod
+    def make(config):
+        sensors_config = config[constants.AGENT_CONFIG_SECTION_SENSORS]
+        try:
+            return Thermometer(sensors_config[constants.AGENT_CONFIG_KEY_THERMOMETER_DIR], 
+                               sensors_config[constants.AGENT_CONFIG_KEY_THERMOMETER_FILE])
+        except Exception as e:
+            logging.error('Thermometer is enabled in configs, but failed to be discovered. Exception: %s' % e)
+            return None
+    
     def __init__(self, device_directory, device_file):
         self.device_path = os.path.join(device_directory, device_file)
         if not os.path.isfile(self.device_path):
             logging.error('Failed to initialize thermometer at path: %s' % self.device_path)
             raise Exception('No Thermometer device found at path: %s' % self.device_path)
+
+    def read(self):
+        try:
+            fd = open(self.full_path, 'r')
+            slave_data = fd.read()
+            if slave_data:
+                temp_c = slave_data[slave_data.index('t=') + 2:]
+                temp_c = int(temp_c.strip('\n'))
+                temp_c = float(temp_c) / 1000
+                return temp_c
+            else:
+                logging.error('Unable to parse temp - fd is None')
+
+        except IOError as e:
+            logging.error(e.message)
+            return None

@@ -23,7 +23,6 @@ import os
 import logging
 import utils
 import constants
-from sensors import SensorManager
 from services import ServiceManager
 from configparser import ConfigParser
 
@@ -44,17 +43,13 @@ def agent_main():
     utils.setup_logger(constants.AGENT_APP_NAME, log_directory)
 
     # Setup config
-    agent_config_file = os.path.join(root_directory, constants.AGENT_CONFIG_PATH)
+    agent_config_file = os.path.join(root_directory, constants.AGENT_CONFIG_DEFAULT_PATH)
     if not agent_config_file or not os.path.isfile(agent_config_file):
         logging.error('Failed to resolve agent config file at relative path %s' % constants.AGENT_CONFIG_PATH)
         sys.exit(2)
 
     config = ConfigParser()
     config.read(agent_config_file)
-
-    # Start sensor data collection
-    sensors = SensorManager(config)
-    sensors.start_collection()
 
     # Start agent services
     services = ServiceManager(config)

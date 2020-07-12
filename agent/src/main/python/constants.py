@@ -24,10 +24,10 @@ HOMECONTROL_ROOT_ENVIRONMENT_VAR = 'HOMECONTROL'
 AGENT_RUN_DIR_ENVIRONMENT_VAR = 'AGENT_RUN_DIR'
 
 # Agent properties
-AGENT_APP_NAME = 'homecontrol-agent'
+AGENT_APP_NAME = 'agent'
 
 # Agent config
-AGENT_CONFIG_PATH = 'agent/conf/agent-default.conf'
+AGENT_CONFIG_DEFAULT_PATH = 'agent/conf/agent-default.conf'
 
 # Agent config sections
 AGENT_CONFIG_SECTION_BASE_SERVER = 'BASE_SERVER'
@@ -38,6 +38,7 @@ AGENT_CONFIG_SECTION_SENSORS = 'SENSORS'
 AGENT_CONFIG_KEY_ADDRESS = 'address'
 AGENT_CONFIG_KEY_GRPC_PORT = 'grpc_port'
 AGENT_CONFIG_KEY_CLIMATE = 'climate'
+AGENT_CONFIG_KEY_CLIMATE_POLL_INTERVAL_S = 'climate_poll_interval_s'
 AGENT_CONFIG_KEY_THERMOMETER = 'thermometer'
 AGENT_CONFIG_KEY_THERMOMETER_DIR = 'thermometer_device_dir'
 AGENT_CONFIG_KEY_THERMOMETER_FILE = 'thermometer_device_file'
