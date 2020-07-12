@@ -69,7 +69,7 @@ class ServiceManager(object):
                 self.climate.start()
 
         else:
-            logging.info('No services enabled.')
+            logging.info('No services enabled. Enable services by modifying override config file.')
 
 
 CONFIG_KEY_CLIMATE_POLL_INTERVAL = 'climate_poll_interval_seconds'
