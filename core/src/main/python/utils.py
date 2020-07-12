@@ -55,7 +55,7 @@ def setup_logger(app_name, log_dir, logging_config):
                         datefmt='%Y-%m-%d-%H:%M:%S',
                         filename=log_path,
                         filemode='w+')
-    log = logging.getLogger()
+    log = logging.getLogger('root')
     handler = RotatingFileHandler(log_path, maxBytes=log_file_limit, backupCount=1)
     log.addHandler(handler)
 

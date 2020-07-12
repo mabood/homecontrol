@@ -28,6 +28,7 @@ AGENT_APP_NAME = 'agent'
 
 # Agent config
 AGENT_CONFIG_DEFAULT_PATH = 'agent/conf/agent-default.conf'
+AGENT_CONFIG_OVERRIDE_PATH = 'agent/conf/agent-override.conf'
 
 # Agent config sections
 AGENT_CONFIG_SECTION_LOGGING = 'LOGGING'

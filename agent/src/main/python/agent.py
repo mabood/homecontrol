@@ -41,14 +41,20 @@ def agent_main():
         sys.exit(1)
 
     # Setup config
-    agent_config_file = os.path.join(root_directory, constants.AGENT_CONFIG_DEFAULT_PATH)
-    if not agent_config_file or not os.path.isfile(agent_config_file):
+    default_config_file = os.path.join(root_directory, constants.AGENT_CONFIG_DEFAULT_PATH)
+    if not default_config_file or not os.path.isfile(default_config_file):
         print('Failed to resolve agent config file at relative path %s' % constants.AGENT_CONFIG_PATH)
         sys.exit(2)
+    
+    override_config_file = os.path.join(root_directory, constants.AGENT_CONFIG_OVERRIDE_PATH)
+    if not override_config_file or not os.path.isfile(override_config_file):
+        override_config_file = None
             
     try:
         config = ConfigParser()
-        config.read(agent_config_file)
+        config.read(default_config_file)
+        if override_config_file is not None:
+            config.read(override_config_file)
         utils.setup_logger(constants.AGENT_APP_NAME, log_directory, config[constants.AGENT_CONFIG_SECTION_LOGGING])
 
         # Start agent services
