@@ -47,13 +47,17 @@ def agent_main():
     if not agent_config_file or not os.path.isfile(agent_config_file):
         logging.error('Failed to resolve agent config file at relative path %s' % constants.AGENT_CONFIG_PATH)
         sys.exit(2)
-
-    config = ConfigParser()
-    config.read(agent_config_file)
-
-    # Start agent services
-    services = ServiceManager(config)
-    services.start_services()
+    
+    try:
+        config = ConfigParser()
+        config.read(agent_config_file)
+        
+        # Start agent services
+        services = ServiceManager(config)
+        services.start_services()
+    except Exception as e:
+        logging.error('Agent interrupted due to exception: %s', e)
+        sys.exit(3)
 
 
 if __name__ == '__main__':

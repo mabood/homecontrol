@@ -88,9 +88,9 @@ class ClimateClient(object):
 
         # Schedule interval job
         poll_interval = self.config.get(constants.AGENT_CONFIG_SECTION_SERVICES, 
-                                        constants.AGENT_CONFIG_KEY_CLIMATE_POLL_INTERVAL_S)
-        logging.info('Begin polling thermometer on interval of %s seconds' % poll_interval)
-        self.interval_timer = IntervalTimer.IntervalTimer(float(poll_interval), self.log_temp_c)
+                                        constants.AGENT_CONFIG_KEY_CLIMATE_POLL_INTERVAL)
+        logging.info('Begin polling thermometer on interval of %s minutes' % poll_interval)
+        self.interval_timer = IntervalTimer(float(poll_interval), self.log_temp_c)
         self.interval_timer.start()
         
     def stop(self):
