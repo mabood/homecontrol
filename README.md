@@ -15,17 +15,8 @@ Follow these steps to install Home Control on your system
 Installing Home Control on Raspberry Pi requires a few prerequisite installation steps before running the setup scripts.
 ```
 $ sudo apt-get update
-```
-Make sure git is installed (necessary for "*-lite" Raspbian images)
-```
 $ sudo apt-get install git
-```
-Install pip
-```
 $ sudo apt-get install pip
-```
-Install python3-venv enabling the virtual python3 environment
-```
 $ sudo apt-get install python3-venv
 ```
 Clone the repository, and from the project root directory run the install script passing the intended installation type
@@ -38,7 +29,7 @@ To setup the 3-wire thermal sensor with raspberry pi GPIO, first enable GPIO in 
  ```
 $ sudo vim /boot/config.txt
 ```
-Add the following line anywhere in the file
+Add the following line anywhere in the file:
 ```
 dtoverlay=w1-gpio
 ```
@@ -55,7 +46,7 @@ With the sensor connected, find the detected device and note its name in the fol
 ```
 $ ls /sys/bus/w1/devices/
 ```
-You should see a sym-link directory named for the device, such as the following
+You should see a linked directory for the device such as "28-03189779d98f" in the following:
 ```
 $ ls -al
 total 0
@@ -70,7 +61,7 @@ $ cat /sys/bus/w1/devices/28-03189779d98f/w1_slave
 a2 01 55 05 7f a5 a5 66 ce : crc=ce YES
 a2 01 55 05 7f a5 a5 66 ce t=26125
 ```
-Now that we have an active thermal sensor connected, add the sensor name to the agent configuration file
+Now that we have an active thermal sensor connected, add the sensor directory to the agent configuration file
 ```
 $ cd path/to/homecontrol
 $ $ vim agent/conf/agent-default.conf

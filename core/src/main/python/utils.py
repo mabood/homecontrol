@@ -19,10 +19,15 @@
 #
 
 import logging
+from logging.handlers import RotatingFileHandler
 import os
 
+CONFIG_KEY_LOG_VERBOSE = 'log_verbose'
+CONFIG_KEY_LOG_TO_CONSOLE = 'log_to_console'
+CONFIG_KEY_LOG_FILE_LIMIT = 'log_file_size_limit_bytes'
 
-def setup_logger(app_name, log_dir, log_to_console=False, verbose=False):
+
+def setup_logger(app_name, log_dir, logging_config):    
     if not app_name:
         raise Exception('cannot create logger with app_name=None')
 
@@ -31,6 +36,10 @@ def setup_logger(app_name, log_dir, log_to_console=False, verbose=False):
 
     if not os.path.isdir(log_dir):
         os.makedirs(log_dir)
+    
+    log_to_console = eval(logging_config[CONFIG_KEY_LOG_TO_CONSOLE])
+    verbose = eval(logging_config[CONFIG_KEY_LOG_VERBOSE])
+    log_file_limit = int(logging_config[CONFIG_KEY_LOG_FILE_LIMIT])
 
     log_file_name = app_name + '.log'
     log_path = os.path.join(log_dir, log_file_name)
@@ -41,12 +50,14 @@ def setup_logger(app_name, log_dir, log_to_console=False, verbose=False):
     else:
         log_level = logging.INFO
 
-    logging.getLogger('').handlers = []
     logging.basicConfig(level=log_level,
                         format=log_format,
                         datefmt='%Y-%m-%d-%H:%M:%S',
                         filename=log_path,
                         filemode='w+')
+    log = logging.getLogger()
+    handler = RotatingFileHandler(log_path, maxBytes=log_file_limit, backupCount=1)
+    log.addHandler(handler)
 
     if log_to_console:
         console = logging.StreamHandler()

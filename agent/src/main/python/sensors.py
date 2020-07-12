@@ -19,17 +19,21 @@
 #
 
 import logging
-import constants
 import os
 
+CONFIG_KEY_THERMOMETER_ENABLED = 'thermometer_enabled'
+CONFIG_KEY_THERMOMETER_DIR = 'thermometer_device_dir'
+CONFIG_KEY_THERMOMETER_FILE = 'thermometer_device_file'
 
 class Thermometer(object):
     @staticmethod
-    def make(config):
-        sensors_config = config[constants.AGENT_CONFIG_SECTION_SENSORS]
+    def make(sensors_config):
+        if not eval(sensors_config[CONFIG_KEY_THERMOMETER_ENABLED]):
+            logging.error('Thermometer is not enabled in configs.')
+            return None
         try:
-            return Thermometer(sensors_config[constants.AGENT_CONFIG_KEY_THERMOMETER_DIR], 
-                               sensors_config[constants.AGENT_CONFIG_KEY_THERMOMETER_FILE])
+            return Thermometer(sensors_config[CONFIG_KEY_THERMOMETER_DIR], 
+                               sensors_config[CONFIG_KEY_THERMOMETER_FILE])
         except Exception as e:
             logging.error('Thermometer is enabled in configs, but failed to be discovered. Exception: %s' % e)
             return None
