@@ -68,7 +68,7 @@ function install_agent {
     if [ -d "${AGENT_VENV}" ]; then
         printf "\n>\tvenv directory already exists.\n"
     else
-        if ! python -m virtualenv "${AGENT_VENV:?}" -p python3; then
+        if ! python3 -m venv "${AGENT_VENV:?}"; then
             printf "\n>\tfailed to create venv directory.\n"
             print_install_result_and_exit 6;
         fi
