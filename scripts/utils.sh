@@ -32,6 +32,8 @@ function set_environment_vars {
         export CORE_SRC_DIR=${CORE_DIR}/src/main/python
         export AGENT_RUN_DIR=${AGENT_DIR}/run
         export AGENT_RUN_PID_FILE="${AGENT_RUN_DIR}/pid"
+        export AGENT_CONF_DIR=${AGENT_DIR}/conf
+        export AGENT_CONF_OVERRIDE_FILE=${AGENT_CONF_DIR}/agent-override.conf
 
         return 0
     fi

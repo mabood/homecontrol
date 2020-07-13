@@ -123,6 +123,14 @@ function install_agent {
         print_install_result_and_exit 13;
     fi
 
+    printf "\n>\tCreating config override file...\n"
+    # create config override file
+    if ! [ -f "${AGENT_CONF_OVERRIDE_FILE}" ]; then
+        printf "# Edit this file to override default configs for agent\n\n[LOGGING]\nlog_verbose=1\n" > "${AGENT_CONF_OVERRIDE_FILE}";
+    else
+        printf "\n>\tConfig override file already exists.\n"
+    fi
+
     print_install_result_and_exit 0
 }
 
