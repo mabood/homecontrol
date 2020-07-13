@@ -61,11 +61,13 @@ $ cat /sys/bus/w1/devices/28-03189779d98f/w1_slave
 a2 01 55 05 7f a5 a5 66 ce : crc=ce YES
 a2 01 55 05 7f a5 a5 66 ce t=26125
 ```
-Now that we have an active thermal sensor connected, add the sensor directory to the agent configuration file
+Now that we have an active thermal sensor connected, add the sensor directory to the agent config override file
 ```
 $ cd path/to/homecontrol
-$ $ vim agent/conf/agent-default.conf
+$ $ vim agent/conf/agent-override.conf
+thermometer_enabled=1
 thermometer_device_dir=/sys/bus/w1/devices/28-03189779d98f 
+thermometer_device_file=w1_slave
 ```
 	
 ## Running Home Control
