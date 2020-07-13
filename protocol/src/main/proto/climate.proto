@@ -20,8 +20,6 @@
 
 syntax = "proto3";
 
-import "google/protobuf/timestamp.proto";
-
 package homecontrol.service;
 
 /*
@@ -45,12 +43,12 @@ service Climate {
 }
 
 /*
- * TemperaturePoint message includes a celsius value and the timestamp indicating
+ * TemperaturePoint message includes a celsius value and the POSIX timestamp indicating
  * the time at which the temperature value was recorded.
  */
 message TemperaturePoint {
-  google.protobuf.Timestamp recorded_timestamp = 1;
-  float recorded_temperature_celsius = 2;
+  uint64 timestamp = 1;
+  float temp_celsius = 2;
 }
 
 

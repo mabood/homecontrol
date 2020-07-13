@@ -22,14 +22,19 @@ import logging
 import constants
 import sensors
 import grpc
+import time
 import climate_pb2 as climate
 import climate_pb2_grpc as climate_grpc
 from threading import Timer
-from google.protobuf.timestamp_pb2 import Timestamp
 
 CONFIG_KEY_ADDRESS = 'address'
 CONFIG_KEY_GRPC_PORT = 'grpc_port'
 CONFIG_KEY_CLIMATE_ENABLED = 'climate_enabled'
+
+
+def current_milli_time():
+    return int(round(time.time() * 1000))
+
 
 class ServiceManager(object):
     def __init__(self, config):
@@ -83,8 +88,6 @@ class ClimateClient(object):
         self.interval_timer = None
 
     def start(self):
-        timestamp = Timestamp()
-
         # Check prerequisites
         if self.thermometer is None:
             logging.error('Failed to start Climate Client - thermometer is not setup. Check logs for exception.')
@@ -106,7 +109,15 @@ class ClimateClient(object):
             logging.error('Failed to read thermal sensor. stopping interval execution.')
             self.interval_timer.stop()
             return
-        logging.debug('read thermometer value (celsius): %s' % thermometer_value)
+        logging.debug('Read thermometer value (celsius): %s' % thermometer_value)
+        
+        try:
+            temp = climate.TemperaturePoint()
+            temp.timestamp = current_milli_time()
+            temp.temp_celsius = float(thermometer_value)
+            logging.info('Sending temperature point: \n%s' % temp)
+        except Exception as e:
+            logging.error('Failed to report temperature due to exception: %s' % e)
 
 
 class IntervalTimer(object):

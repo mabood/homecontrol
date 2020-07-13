@@ -25,6 +25,7 @@ CONFIG_KEY_THERMOMETER_ENABLED = 'thermometer_enabled'
 CONFIG_KEY_THERMOMETER_DIR = 'thermometer_device_dir'
 CONFIG_KEY_THERMOMETER_FILE = 'thermometer_device_file'
 
+
 class Thermometer(object):
     @staticmethod
     def make(sensors_config):
