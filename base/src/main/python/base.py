@@ -27,14 +27,16 @@ import datetime
 from configparser import ConfigParser
 from flask import Flask
 
-app = Flask(__name__)
-
 @app.route('/doorbell', methods=['POST'])
 def hello_world():
     logging.info('Posted doorbell ring at %s', datetime.datetime.now())
     return "<p>Ring Ring</p>"
 
-@app.before_first_request
+def create_app():
+    base_main()
+    app = Flask(__name__)
+    return app
+
 def base_main():
     # Resolve homecontrol root directory absolute path
     root_directory = os.getenv(constants.HOMECONTROL_ROOT_ENVIRONMENT_VAR)
