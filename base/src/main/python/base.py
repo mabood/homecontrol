@@ -28,7 +28,6 @@ from configparser import ConfigParser
 from flask import Flask
 
 app = Flask(__name__)
-base_main()
 
 @app.route('/doorbell', methods=['POST'])
 def hello_world():
@@ -73,5 +72,5 @@ def base_main():
         sys.exit(3)
 
 
-if __name__ == '__main__':
+#if __name__ == '__main__':
     base_main()
