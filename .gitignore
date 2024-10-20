@@ -1,6 +1,6 @@
 .DS_Store
 .idea/*
-protocol/build/*
+build/*
 venv/*
 *__pycache__
 agent/run/*

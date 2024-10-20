@@ -1,5 +1,5 @@
 #
-# Home Control - Agent
+# Home Control - App
 # Created by Michael Abood on 04/19/20
 #
 #    This file is part of Home Control.
@@ -23,30 +23,54 @@ import os
 import logging
 import utils
 import constants
+import datetime
 from services import ServiceManager
 from configparser import ConfigParser
+from flask import Flask
 
+def create_app():
+    setup()
 
-def agent_main():
+    app = Flask(__name__)
+
+    with app.app_context():
+        import routes
+
+    return app
+
+def setup():
     # Resolve homecontrol root directory absolute path
-    root_directory = os.getenv(constants.HOMECONTROL_ROOT_ENVIRONMENT_VAR)
+    root_directory = os.getenv(constants.HOMECONTROL_ROOT_ENV)
     if not root_directory or not os.path.isdir(root_directory):
-        print('Unable to resolve homecontrol root directory from environment variables. Use launch.sh to run agent')
+        print('Unable to resolve homecontrol root directory from environment variables. Use launch.sh to run application')
         sys.exit(1)
 
-    # Setup logging
-    log_directory = os.getenv(constants.AGENT_RUN_DIR_ENVIRONMENT_VAR)
+    # Resolve app name
+    app_name = os.getenv(constants.APP_NAME_ENV)
+    if not app_name
+        print('Unable to resolve app name from environment variables. Use launch.sh to run application')
+        sys.exit(1)
+
+    # Resolve run dir
+    log_directory = os.getenv(constants.RUN_DIR_ENV)
     if not log_directory or not os.path.isdir(log_directory):
-        print('Unable to resolve agent run directory from environment variables')
+        print('Unable to resolve run directory from environment variables')
         sys.exit(1)
 
-    # Setup config
-    default_config_file = os.path.join(root_directory, constants.AGENT_CONFIG_DEFAULT_PATH)
+    # Resolve config dir
+    config_directory = os.getenv(constants.CONFIG_DIR_ENV)
+    if not config_directory or not os.path.isdir(config_directory):
+        print('Unable to resolve config directory from environment variables')
+        sys.exit(1)
+
+    # Resolve default config file
+    default_config_file = os.path.join(config_directory, ('%s-default.conf' % app_name))
     if not default_config_file or not os.path.isfile(default_config_file):
-        print('Failed to resolve agent config file at relative path %s' % constants.AGENT_CONFIG_DEFAULT_PATH)
+        print('Failed to resolve default config file at path %s' % default_config_file)
         sys.exit(2)
     
-    override_config_file = os.path.join(root_directory, constants.AGENT_CONFIG_OVERRIDE_PATH)
+    # Resolve override config file
+    override_config_file = os.path.join(config_directory, ('%s-override.conf' % app_name))
     if not override_config_file or not os.path.isfile(override_config_file):
         override_config_file = None
             
@@ -61,9 +85,7 @@ def agent_main():
         services = ServiceManager(config)
         services.start_services()
     except Exception as e:
-        logging.error('Agent interrupted due to exception: %s', e)
+        logging.error('%s interrupted due to exception: %s', app_name e)
         sys.exit(3)
 
 
-if __name__ == '__main__':
-    agent_main()

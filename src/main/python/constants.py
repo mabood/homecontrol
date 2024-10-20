@@ -18,23 +18,11 @@
 #    along with Home Control.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-
 # Environment variable constants
-HOMECONTROL_ROOT_ENVIRONMENT_VAR = 'HOMECONTROL'
-AGENT_RUN_DIR_ENVIRONMENT_VAR = 'AGENT_RUN_DIR'
-BASE_RUN_DIR_ENVIRONMENT_VAR = 'BASE_RUN_DIR'
-
-# App properties
-AGENT_APP_NAME = 'agent'
-BASE_APP_NAME = 'base'
-
-# Agent config
-AGENT_CONFIG_DEFAULT_PATH = 'agent/conf/agent-default.conf'
-AGENT_CONFIG_OVERRIDE_PATH = 'agent/conf/agent-override.conf'
-
-# Base config
-BASE_CONFIG_DEFAULT_PATH = 'base/conf/base-default.conf'
-BASE_CONFIG_OVERRIDE_PATH = 'base/conf/base-override.conf'
+HOMECONTROL_ROOT_ENV = 'HOMECONTROL'
+RUN_DIR_ENV = 'RUN_DIR'
+APP_NAME_ENV = 'APP_NAME'
+CONFIG_DIR_ENV = "CONFIG_DIR"
 
 # Config sections
 CONFIG_SECTION_LOGGING = 'LOGGING'

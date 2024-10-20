@@ -11,75 +11,49 @@ readonly UTILS=$(pwd)/scripts/utils.sh
 # shellcheck disable=SC1090
 source "${UTILS}"
 
-function launch_agent {
+function launch {
+    export APP_NAME=$0
+    export RUN_DIR=$1
+    export CONFIG_DIR=$2
 
-    # Set environment variables
-    if ! set_environment_vars; then
-        exit 3;
-    fi
-
-    if ! [ -d "${VENV_DIR:?}" ]; then
-        printf "Virtual environment not found. Run the install script before launching."
-        exit 4
-    fi
-
-    if ! mkdir -p "${AGENT_RUN_DIR:?}"; then
-        printf "Failed to create agent run directory"
-        exit 5
-    fi
-
-    # Check if agent is already running
-    if [ -f "${AGENT_RUN_PID_FILE:?}" ]; then
-        if ps aux | grep -f "${AGENT_RUN_PID_FILE:?}"; then
-            printf "Home Control Agent already running on pid=%s\n" "$(cat "${AGENT_RUN_PID_FILE:?}")"
-            exit 0
-        fi
-    fi
-
-    printf "Launching Home Control Agent...\n"
-    activate_venv;
-    nohup python "${AGENT_DIR:?}"/src/main/python/agent.py >"${AGENT_RUN_DIR:?}"/"${AGENT:?}"-launch.log 2>&1 & echo $! > "${AGENT_RUN_PID_FILE:?}"
-}
-
-function launch_base {
-
-    # Set environment variables
-    if ! set_environment_vars; then
-        exit 3;
-    fi
+    RUN_PID_FILE="${RUN_DIR}/pid"
 
     if ! [ -d "${VENV_DIR:?}" ]; then
         printf "Virtual environment not found. Run the install script before launching."
         exit 4
     fi
 
-    if ! mkdir -p "${BASE_RUN_DIR:?}"; then
-        printf "Failed to create base run directory"
+    if ! mkdir -p "${RUN_DIR:?}"; then
+        printf "Failed to create run directory"
         exit 5
     fi
 
     # Check if agent is already running
-    if [ -f "${BASE_RUN_PID_FILE:?}" ]; then
-        if ps aux | grep -f "${BASE_RUN_PID_FILE:?}"; then
-            printf "Home Control Base already running on pid=%s\n" "$(cat "${BASE_RUN_PID_FILE:?}")"
+    if [ -f "${RUN_PID_FILE:?}" ]; then
+        if ps aux | grep -f "${RUN_PID_FILE:?}"; then
+            printf "Home Control ${APP_NAME} already running on pid=%s\n" "$(cat "${RUN_PID_FILE:?}")"
             exit 0
         fi
     fi
 
-    printf "Launching Home Control Base...\n"
+    printf "Launching Home Control ${APP_NAME}...\n"
     activate_venv;
-    nohup flask --app "${BASE_DIR:?}"/src/main/python/base.py run --host=0.0.0.0 >"${BASE_RUN_DIR:?}"/"${BASE:?}"-launch.log 2>&1 & echo $! > "${BASE_RUN_PID_FILE:?}"
+    nohup flask --app "${FLASK_APP:?}" run --host=0.0.0.0 >"${RUN_DIR:?}"/"${APP_NAME:?}"-launch.log 2>&1 & echo $! > "${RUN_PID_FILE:?}"
 }
 
+# Set environment variables
+if ! set_environment_vars; then
+    exit 3;
+fi
 
 if [ $# != 1 ]; then
     printf "Usage: %s directive\n\n" $0;
     print_supported_directives;
     exit 1;
 elif [ "$1" == "$AGENT" ]; then
-    launch_agent;
+    launch $1 "${AGENT_RUN_DIR:?}" "${AGENT_CONF_DIR:?}";
 elif [ "$1" == "$BASE" ]; then
-    launch_base;
+    launch $1 "${BASE_RUN_DIR:?}" "${BASE_CONF_DIR:?}";
 else
     printf "Invalid directive.\n\n";
     print_supported_directives;

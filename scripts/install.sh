@@ -110,12 +110,6 @@ function install {
         print_install_result_and_exit 12;
     fi
 
-    # add core python files to path
-    if ! echo "${CORE_SRC_DIR:?}" > "${VENV_DIR_PYTHON_DIR:?}"/site-packages/core.pth; then
-        printf "\n>\tFailed to add core python files to venv path.\n"
-        print_install_result_and_exit 13;
-    fi
-
     printf "\n>\tCreating agent config override file...\n"
     # create agent config override file
     if ! [ -f "${AGENT_CONF_OVERRIDE_FILE}" ]; then
@@ -134,13 +128,6 @@ function install {
 
     print_install_result_and_exit 0
 }
-
-function install_base {
-    OS=$1;
-    print_install_banner "${BASE}" "${OS}"
-    print_install_result_and_exit 0
-}
-
 
 #
 # Install entry point
