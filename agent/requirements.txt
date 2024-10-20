@@ -1,6 +1,6 @@
 certifi==2024.7.4
 chardet==3.0.4
-grpcio==1.27.2
+grpcio==1.53.2
 grpcio-tools==1.27.2
 idna==3.7
 protobuf==3.18.3
