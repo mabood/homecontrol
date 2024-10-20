@@ -23,9 +23,15 @@ import os
 import logging
 import utils
 import constants
-from services import ServiceManager
+import datetime
 from configparser import ConfigParser
+from flask import Flask
 
+app = Flask(__name__)
+
+@app.route('/doorbell', methods=['POST'])
+def hello_world():
+    logging.info('Posted doorbell ring at %s' datetime.datetime.now())
 
 def base_main():
     # Resolve homecontrol root directory absolute path
