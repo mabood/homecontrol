@@ -156,6 +156,6 @@ class Chime(object):
         self.sound = pygame.mixer.Sound(self.sound_file)
 
     def ring(self):
-        playing = sound.play()
+        playing = self.sound.play()
         while playing.get_busy():
             pygame.time.delay(100)
