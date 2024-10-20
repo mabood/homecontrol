@@ -19,10 +19,10 @@ $ sudo apt-get install git
 $ sudo apt-get install pip
 $ sudo apt-get install python3-venv
 ```
-Clone the repository, and from the project root directory run the install script passing the intended installation type
+Clone the repository, and from the project root directory run the install script
 ```
 $ cd path/to/homecontrol
-$ scripts/install.sh agent
+$ scripts/install.sh
 ```
 #### Thermal Sensor Setup
 To setup the 3-wire thermal sensor with raspberry pi GPIO, first enable GPIO in boot config
