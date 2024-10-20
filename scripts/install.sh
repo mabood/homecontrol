@@ -14,7 +14,7 @@ function print_install_banner {
     printf "\n======================================================"
     printf "\n\t\tHome Control Installer"
     printf "\n======================================================"
-    printf "\n\nInstalling homecontrol %s for %s \n" "$1" "$2"
+    printf "\n\nInstalling homecontrol for %s \n" "$1"
 }
 
 function print_install_result_and_exit {
@@ -40,9 +40,9 @@ function resolve_OS {
 
 
 
-function install_agent {
-    OS=$1;
-    print_install_banner "${AGENT}" "${OS}"
+function install {
+    OS=$0;
+    print_install_banner "${OS}"
 
     # Check whether python3 is installed
     if command -v python3 >/dev/null 2>&1; then
@@ -58,10 +58,10 @@ function install_agent {
     fi
 
     # create venv
-    if [ -d "${AGENT_VENV}" ]; then
+    if [ -d "${VENV_DIR}" ]; then
         printf "\n>\tvenv directory already exists.\n"
     else
-        if ! python3 -m venv "${AGENT_VENV:?}"; then
+        if ! python3 -m venv "${VENV_DIR:?}"; then
             printf "\n>\tfailed to create venv directory.\n"
             print_install_result_and_exit 6;
         fi
@@ -72,9 +72,9 @@ function install_agent {
 
     activate_venv;
 
-    printf "\n>\tInstalling agent requirements.txt...\n"
+    printf "\n>\tInstalling requirements.txt...\n"
     # install requirements.txt
-    if ! pip install -r "${AGENT_DIR:?}"/requirements.txt; then
+    if ! pip install -r "${REQUIREMENTS_FILE:?}"; then
         printf "\n>\tfailed to install requirements.txt\n"
         print_install_result_and_exit 8;
     fi
@@ -98,30 +98,38 @@ function install_agent {
     fi
 
     printf "\n>\tAdding generated gRPC python files to path...\n"
-    AGENT_VENV_PYTHON_DIR=$(find "${AGENT_VENV:?}"/lib -maxdepth 1 -name "python*")
-    if [ -z "${AGENT_VENV_PYTHON_DIR}" ]; then
+    VENV_DIR_PYTHON_DIR=$(find "${VENV_DIR:?}"/lib -maxdepth 1 -name "python*")
+    if [ -z "${VENV_DIR_PYTHON_DIR}" ]; then
         printf "\n>\tCannot locate python3.X directory in venv.\n"
         print_install_result_and_exit 11;
     fi
 
     # add generated python files to path
-    if ! echo "${PROTO_GEN_PYTHON_DIR:?}" > "${AGENT_VENV_PYTHON_DIR:?}"/site-packages/generated-protos.pth; then
+    if ! echo "${PROTO_GEN_PYTHON_DIR:?}" > "${VENV_DIR_PYTHON_DIR:?}"/site-packages/generated-protos.pth; then
         printf "\n>\tFailed to add generated python files to venv path.\n"
         print_install_result_and_exit 12;
     fi
 
     # add core python files to path
-    if ! echo "${CORE_SRC_DIR:?}" > "${AGENT_VENV_PYTHON_DIR:?}"/site-packages/core.pth; then
+    if ! echo "${CORE_SRC_DIR:?}" > "${VENV_DIR_PYTHON_DIR:?}"/site-packages/core.pth; then
         printf "\n>\tFailed to add core python files to venv path.\n"
         print_install_result_and_exit 13;
     fi
 
-    printf "\n>\tCreating config override file...\n"
-    # create config override file
+    printf "\n>\tCreating agent config override file...\n"
+    # create agent config override file
     if ! [ -f "${AGENT_CONF_OVERRIDE_FILE}" ]; then
         printf "# Edit this file to override default configs for agent\n\n[LOGGING]\nlog_verbose=1\n" > "${AGENT_CONF_OVERRIDE_FILE}";
     else
-        printf "\n>\tConfig override file already exists.\n"
+        printf "\n>\tAgent config override file already exists.\n"
+    fi
+
+    printf "\n>\tCreating base config override file...\n"
+    # create base config override file
+    if ! [ -f "${BASE_CONF_OVERRIDE_FILE}" ]; then
+        printf "# Edit this file to override default configs for base\n\n[LOGGING]\nlog_verbose=1\n" > "${BASE_CONF_OVERRIDE_FILE}";
+    else
+        printf "\n>\tBase config override file already exists.\n"
     fi
 
     print_install_result_and_exit 0
@@ -140,17 +148,5 @@ function install_base {
 
 SYSTEM_OS=$(resolve_OS);
 
-if [ $# != 1 ]; then
-    printf "Usage: %s directive\n\n" $0;
-    print_supported_directives;
-    exit 1;
-elif [ "$1" == "$AGENT" ]; then
-    install_agent "${SYSTEM_OS:?}";
-elif [ "$1" == "$BASE" ]; then
-    install_base "${SYSTEM_OS:?}";
-else
-    printf "Invalid directive.\n\n";
-    print_supported_directives;
-    exit 2;
-fi
+install "${SYSTEM_OS:?}";
 

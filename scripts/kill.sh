@@ -40,6 +40,28 @@ function kill_agent {
 
 function kill_base {
 
+    # Set environment variables
+    if ! set_environment_vars; then
+        exit 3;
+    fi
+
+    # Kill base if already running
+    if [ -f "${BASE_RUN_PID_FILE:?}" ]; then
+        if ps aux | grep -f "${BASE_RUN_PID_FILE:?}"; then
+            BASE_PID=$(<"${BASE_RUN_PID_FILE:?}")
+            if ! kill -9 "$BASE_PID"; then
+                printf "\n>\tFailed to kill running base with pid %s\n" "$BASE_PID";
+                exit 2
+            else
+                printf "\n>\Base with pid %s killed.\n" "$BASE_PID";
+            fi
+        else
+            printf "\n>\Base not running.\n";
+        fi
+    else
+        printf "\n>\Base not running.\n";
+    fi
+
     exit 0
 }
 

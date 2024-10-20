@@ -1,6 +1,8 @@
 .idea/*
 protocol/build/*
-agent/venv/*
+venv/*
 *__pycache__
 agent/run/*
 agent/conf/agent-override.conf
+base/run/*
+base/conf/base-override.conf

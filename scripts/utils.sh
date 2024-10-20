@@ -24,7 +24,9 @@ function set_environment_vars {
     else
         export HOMECONTROL=${PWD}
         export AGENT_DIR=${HOMECONTROL}/agent
-        export AGENT_VENV=${AGENT_DIR}/venv
+        export BASE_DIR=${HOMECONTROL}/base
+        export VENV_DIR=${HOMECONTROL}/venv
+        export REQUIREMENTS_FILE=${HOMECONTROL}/requirements.txt
         export PROTOCOL_DIR=${HOMECONTROL}/protocol
         export PROTO_SRC_DIR=${PROTOCOL_DIR}/src/main/proto
         export PROTO_GEN_PYTHON_DIR=${PROTOCOL_DIR}/build/gen/python
@@ -34,13 +36,17 @@ function set_environment_vars {
         export AGENT_RUN_PID_FILE="${AGENT_RUN_DIR}/pid"
         export AGENT_CONF_DIR=${AGENT_DIR}/conf
         export AGENT_CONF_OVERRIDE_FILE=${AGENT_CONF_DIR}/agent-override.conf
+        export BASE_RUN_DIR=${BASE_DIR}/run
+        export BASE_RUN_PID_FILE="${BASE_RUN_DIR}/pid"
+        export BASE_CONF_DIR=${BASE_DIR}/conf
+        export BASE_CONF_OVERRIDE_FILE=${BASE_CONF_DIR}/base-override.conf
 
         return 0
     fi
 }
 
 function activate_venv {
-    if ! source "${AGENT_VENV}/bin/activate"; then
+    if ! source "${VENV_DIR}/bin/activate"; then
         printf "\n>\tfailed to activate venv.\n"
         exit 5
     fi
