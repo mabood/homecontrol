@@ -33,8 +33,8 @@ AGENT_CONFIG_DEFAULT_PATH = 'agent/conf/agent-default.conf'
 AGENT_CONFIG_OVERRIDE_PATH = 'agent/conf/agent-override.conf'
 
 # Base config
-BASE_CONFIG_DEFAULT_PATH = 'base/conf/agent-default.conf'
-BASE_CONFIG_OVERRIDE_PATH = 'base/conf/agent-override.conf'
+BASE_CONFIG_DEFAULT_PATH = 'base/conf/base-default.conf'
+BASE_CONFIG_OVERRIDE_PATH = 'base/conf/base-override.conf'
 
 # Config sections
 CONFIG_SECTION_LOGGING = 'LOGGING'

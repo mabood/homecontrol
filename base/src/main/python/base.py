@@ -25,17 +25,19 @@ import utils
 import constants
 import datetime
 from configparser import ConfigParser
-from flask import Flask
+from flask import Flask, Blueprint
 
-@app.route('/doorbell', methods=['POST'])
-def hello_world():
-    logging.info('Posted doorbell ring at %s', datetime.datetime.now())
-    return "<p>Ring Ring</p>"
+server = Blueprint("server", __name__)
 
 def create_app():
     base_main()
     app = Flask(__name__)
     return app
+
+@server.route('/doorbell', methods=['POST'])
+def hello_world():
+    logging.info('Posted doorbell ring at %s', datetime.datetime.now())
+    return "<p>Ring Ring</p>"
 
 def base_main():
     # Resolve homecontrol root directory absolute path
@@ -66,14 +68,10 @@ def base_main():
         if override_config_file is not None:
             config.read(override_config_file)
         utils.setup_logger(constants.BASE_APP_NAME, log_directory, config[constants.CONFIG_SECTION_LOGGING])
-
-        # TODO Integrate base services
-        logging.info('No services enabled. Enable services by modifying override config file.')
+        logging.info('Base started up')
 
     except Exception as e:
         logging.error('Base interrupted due to exception: %s', e)
         sys.exit(3)
 
 
-if __name__ == '__main__':
-    base_main()

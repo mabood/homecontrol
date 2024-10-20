@@ -68,7 +68,7 @@ function launch_base {
 
     printf "Launching Home Control Base...\n"
     activate_venv;
-    nohup python "${BASE_DIR:?}"/src/main/python/base.py >"${BASE_RUN_DIR:?}"/"${BASE:?}"-launch.log 2>&1 & echo $! > "${BASE_RUN_PID_FILE:?}"
+    nohup flask --app "${BASE_DIR:?}"/src/main/python/base.py run --host=0.0.0.0 >"${BASE_RUN_DIR:?}"/"${BASE:?}"-launch.log 2>&1 & echo $! > "${BASE_RUN_PID_FILE:?}"
 }
 
 
