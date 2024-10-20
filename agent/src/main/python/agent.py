@@ -55,7 +55,7 @@ def agent_main():
         config.read(default_config_file)
         if override_config_file is not None:
             config.read(override_config_file)
-        utils.setup_logger(constants.AGENT_APP_NAME, log_directory, config[constants.AGENT_CONFIG_SECTION_LOGGING])
+        utils.setup_logger(constants.AGENT_APP_NAME, log_directory, config[constants.CONFIG_SECTION_LOGGING])
 
         # Start agent services
         services = ServiceManager(config)

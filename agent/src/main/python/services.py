@@ -39,7 +39,7 @@ def current_milli_time():
 class ServiceManager(object):
     def __init__(self, config):
         self.config = config
-        services_config = config[constants.AGENT_CONFIG_SECTION_SERVICES]
+        services_config = config[constants.CONFIG_SECTION_SERVICES]
         self.has_services = False
         self.has_climate = eval(services_config[CONFIG_KEY_CLIMATE_ENABLED])
         self.has_services = self.has_climate
@@ -52,12 +52,12 @@ class ServiceManager(object):
             self.climate = ClimateClient(self.channel, self.config)
 
     def initialize_grpc_channel(self):
-        base_host_address = self.config.get(constants.AGENT_CONFIG_SECTION_BASE_SERVER, CONFIG_KEY_ADDRESS)
+        base_host_address = self.config.get(constants.CONFIG_SECTION_BASE_SERVER, CONFIG_KEY_ADDRESS)
         if base_host_address is None:
             logging.error('Failed to resolve base host from agent config.')
             raise Exception('Base host address not found')
 
-        base_host_grpc_port = self.config.get(constants.AGENT_CONFIG_SECTION_BASE_SERVER, CONFIG_KEY_GRPC_PORT)
+        base_host_grpc_port = self.config.get(constants.CONFIG_SECTION_BASE_SERVER, CONFIG_KEY_GRPC_PORT)
         if base_host_grpc_port is None:
             logging.error('Failed to resolve base host gRPC port from agent config.')
             raise Exception('Base host gRPC port not found')
@@ -84,7 +84,7 @@ class ClimateClient(object):
     def __init__(self, server_grpc_channel, config):
         self.config = config
         self.channel = server_grpc_channel
-        self.thermometer = sensors.Thermometer.make(config[constants.AGENT_CONFIG_SECTION_SENSORS])
+        self.thermometer = sensors.Thermometer.make(config[constants.CONFIG_SECTION_SENSORS])
         self.interval_timer = None
 
     def start(self):
@@ -94,7 +94,7 @@ class ClimateClient(object):
             return
 
         # Schedule interval job
-        poll_interval = self.config.get(constants.AGENT_CONFIG_SECTION_SERVICES, CONFIG_KEY_CLIMATE_POLL_INTERVAL)
+        poll_interval = self.config.get(constants.CONFIG_SECTION_SERVICES, CONFIG_KEY_CLIMATE_POLL_INTERVAL)
         logging.info('Begin polling thermometer on interval of %s seconds' % poll_interval)
         self.interval_timer = IntervalTimer(float(poll_interval), self.report_temp)
         self.interval_timer.start()
