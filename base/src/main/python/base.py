@@ -43,7 +43,7 @@ def base_main():
     # Setup config
     default_config_file = os.path.join(root_directory, constants.BASE_CONFIG_DEFAULT_PATH)
     if not default_config_file or not os.path.isfile(default_config_file):
-        print('Failed to resolve agent config file at relative path %s' % constants.BASE_CONFIG_PATH)
+        print('Failed to resolve base config file at relative path %s' % constants.BASE_CONFIG_PATH)
         sys.exit(2)
     
     override_config_file = os.path.join(root_directory, constants.BASE_CONFIG_OVERRIDE_PATH)
