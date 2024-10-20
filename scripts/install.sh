@@ -41,7 +41,7 @@ function resolve_OS {
 
 
 function install {
-    OS=$0;
+    OS=$1;
     print_install_banner "${OS}"
 
     # Check whether python3 is installed
