@@ -14,13 +14,13 @@ source "${UTILS}"
 function restart {
 
     # Kill if already running
-    if ! $(pwd)/scripts/kill.sh "$0"; then
-        printf "\n>\tFailed to kill running $0.\n"
+    if ! $(pwd)/scripts/kill.sh "$1"; then
+        printf "\n>\tFailed to kill running $1.\n"
         exit 4
     fi
 
-    if ! $(pwd)/scripts/launch.sh "$0"; then
-        printf "\n>\tFailed to launch $0.\n"
+    if ! $(pwd)/scripts/launch.sh "$1"; then
+        printf "\n>\tFailed to launch $1.\n"
         exit 5
     fi
 

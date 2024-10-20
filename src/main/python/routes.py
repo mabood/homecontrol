@@ -19,8 +19,10 @@
 #
 
 import logging
+from flask import Blueprint
+route_blueprint = Blueprint('route_blueprint', __name__)
 
-@app.route('/doorbell', methods=['POST'])
+@route_blueprint.route('/doorbell', methods=['POST'])
 def hello_world():
     logging.info('Posted doorbell ring at %s', datetime.datetime.now())
     return "<p>Ring Ring</p>"

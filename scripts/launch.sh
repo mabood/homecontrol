@@ -12,9 +12,9 @@ readonly UTILS=$(pwd)/scripts/utils.sh
 source "${UTILS}"
 
 function launch {
-    export APP_NAME=$0
-    export RUN_DIR=$1
-    export CONFIG_DIR=$2
+    export APP_NAME=$1
+    export RUN_DIR=$2
+    export CONFIG_DIR=$3
 
     RUN_PID_FILE="${RUN_DIR}/pid"
 

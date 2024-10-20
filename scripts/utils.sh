@@ -23,8 +23,8 @@ function set_environment_vars {
         return 1
     else
         export HOMECONTROL=${PWD}
-        export AGENT_DIR=${HOMECONTROL}/agent
-        export BASE_DIR=${HOMECONTROL}/base
+        export AGENT_DIR=${HOMECONTROL}/${AGENT}
+        export BASE_DIR=${HOMECONTROL}/${BASE}
         export VENV_DIR=${HOMECONTROL}/venv
         export REQUIREMENTS_FILE=${HOMECONTROL}/requirements.txt
         export FLASK_APP=${HOMECONTROL}/src/main/python/app.py
@@ -32,8 +32,10 @@ function set_environment_vars {
         export PROTO_GEN_PYTHON_DIR=${HOMECONTROL}/build/gen/python
         export AGENT_RUN_DIR=${AGENT_DIR}/run
         export AGENT_CONF_DIR=${AGENT_DIR}/conf
+        export AGENT_CONF_OVERRIDE_FILE=${AGENT_CONF_DIR}/${AGENT}-override.conf
         export BASE_RUN_DIR=${BASE_DIR}/run
         export BASE_CONF_DIR=${BASE_DIR}/conf
+        export BASE_CONF_OVERRIDE_FILE=${BASE_CONF_DIR}/${BASE}-override.conf
 
         return 0
     fi

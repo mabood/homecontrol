@@ -12,8 +12,8 @@ readonly UTILS=$(pwd)/scripts/utils.sh
 source "${UTILS}"
 
 function kill {
-    APP_NAME=$0
-    RUN_DIR=$1
+    APP_NAME=$1
+    RUN_DIR=$2
     RUN_PID_FILE="${RUN_DIR}/pid"
 
     # Kill if already running

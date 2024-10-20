@@ -33,8 +33,8 @@ def create_app():
 
     app = Flask(__name__)
 
-    with app.app_context():
-        import routes
+    from routes import route_blueprint
+    app.register_blueprint(route_blueprint)
 
     return app
 
@@ -47,7 +47,7 @@ def setup():
 
     # Resolve app name
     app_name = os.getenv(constants.APP_NAME_ENV)
-    if not app_name
+    if app_name is None:
         print('Unable to resolve app name from environment variables. Use launch.sh to run application')
         sys.exit(1)
 
@@ -79,13 +79,13 @@ def setup():
         config.read(default_config_file)
         if override_config_file is not None:
             config.read(override_config_file)
-        utils.setup_logger(constants.AGENT_APP_NAME, log_directory, config[constants.CONFIG_SECTION_LOGGING])
+        utils.setup_logger(app_name, log_directory, config[constants.CONFIG_SECTION_LOGGING])
 
         # Start agent services
         services = ServiceManager(config)
         services.start_services()
     except Exception as e:
-        logging.error('%s interrupted due to exception: %s', app_name e)
+        logging.error('%s interrupted due to exception: %s', app_name, e)
         sys.exit(3)
 
 
