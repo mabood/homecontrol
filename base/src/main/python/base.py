@@ -31,7 +31,7 @@ app = Flask(__name__)
 
 @app.route('/doorbell', methods=['POST'])
 def hello_world():
-    logging.info('Posted doorbell ring at %s' datetime.datetime.now())
+    logging.info('Posted doorbell ring at %s', datetime.datetime.now())
 
 def base_main():
     # Resolve homecontrol root directory absolute path
