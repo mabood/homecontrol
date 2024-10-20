@@ -34,6 +34,7 @@ def hello_world():
     logging.info('Posted doorbell ring at %s', datetime.datetime.now())
     return "<p>Ring Ring</p>"
 
+@app.before_first_request
 def base_main():
     # Resolve homecontrol root directory absolute path
     root_directory = os.getenv(constants.HOMECONTROL_ROOT_ENVIRONMENT_VAR)
@@ -72,5 +73,5 @@ def base_main():
         sys.exit(3)
 
 
-#if __name__ == '__main__':
+if __name__ == '__main__':
     base_main()
