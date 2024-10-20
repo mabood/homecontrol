@@ -57,13 +57,6 @@ function install_agent {
         print_install_result_and_exit 4;
     fi
 
-    printf "\n>\tSetting up virtualenv...\n"
-    # install virtualenv
-    if ! pip install virtualenv --user; then
-        printf "\n>\tvirtualenv installation failed.\n"
-        print_install_result_and_exit 5;
-    fi
-
     # create venv
     if [ -d "${AGENT_VENV}" ]; then
         printf "\n>\tvenv directory already exists.\n"
