@@ -23,6 +23,7 @@ function set_environment_vars {
         return 1
     else
         export HOMECONTROL=${PWD}
+        export RESOURCES_DIR=${HOMECONTROL}/resources
         export AGENT_DIR=${HOMECONTROL}/${AGENT}
         export BASE_DIR=${HOMECONTROL}/${BASE}
         export VENV_DIR=${HOMECONTROL}/venv

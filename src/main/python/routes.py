@@ -18,12 +18,17 @@
 #    along with Home Control.  If not, see <https://www.gnu.org/licenses/>.
 #
 
+import os
 import logging
 import datetime
 from flask import Blueprint
+from services import Chime
+
 route_blueprint = Blueprint('route_blueprint', __name__)
+chime = Chime(os.getenv(constants.RESOURCES_DIR_ENV))
 
 @route_blueprint.route('/doorbell', methods=['POST'])
 def hello_world():
     logging.info('Posted doorbell ring at %s', datetime.datetime.now())
+    chime.ring()
     return "<p>Ring Ring</p>"

@@ -18,6 +18,7 @@
 #    along with Home Control.  If not, see <https://www.gnu.org/licenses/>.
 #
 
+import os
 import logging
 import constants
 import sensors
@@ -26,6 +27,7 @@ import time
 import climate_pb2 as climate
 import climate_pb2_grpc as climate_grpc
 from threading import Timer
+import pygame
 
 CONFIG_KEY_ADDRESS = 'address'
 CONFIG_KEY_GRPC_PORT = 'grpc_port'
@@ -144,3 +146,16 @@ class IntervalTimer(object):
     def stop(self):
         self._timer.cancel()
         self.is_running = False
+
+
+class Chime(object):
+    def __init__(self, resources_dir):
+        self.resources_dir = resources_dir
+        self.sound_file = os.path.join(resources_dir, 'computer_magic.wav')
+        pygame.mixer.init()
+        self.sound = pygame.mixer.Sound(self.sound_file)
+
+    def ring(self):
+        playing = sound.play()
+        while playing.get_busy():
+            pygame.time.delay(100)

@@ -23,7 +23,6 @@ import os
 import logging
 import utils
 import constants
-import datetime
 from services import ServiceManager
 from configparser import ConfigParser
 from flask import Flask
