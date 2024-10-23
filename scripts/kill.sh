@@ -16,7 +16,9 @@ function kill {
     RUN_DIR=$2
     RUN_PID_FILE="${RUN_DIR}/pid"
 
-    pkill -F "${RUN_PID_FILE:?}";
+    if pkill -9 -F "${RUN_PID_FILE:?}"; then
+        echo "${APP_NAME} killed.";
+    fi
 
     exit 0
 }
