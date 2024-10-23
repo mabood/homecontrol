@@ -28,8 +28,8 @@ from services import Chime
 route_blueprint = Blueprint('route_blueprint', __name__)
 chime = Chime(os.getenv(constants.RESOURCES_DIR_ENV))
 
-@route_blueprint.route('/doorbell', methods=['POST'])
+@route_blueprint.route('/doorbell')
 def hello_world():
-    logging.info('Posted doorbell ring at %s', datetime.datetime.now())
+    logging.info('Received doorbell ring at %s', datetime.datetime.now())
     chime.ring()
     return "<p>Ring Ring</p>"
