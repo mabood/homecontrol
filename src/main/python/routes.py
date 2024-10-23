@@ -26,7 +26,7 @@ from flask import Blueprint
 from services import Chime
 
 route_blueprint = Blueprint('route_blueprint', __name__)
-chime = Chime(os.getenv(constants.RESOURCES_DIR_ENV))
+chime = Chime(os.getenv(constants.RESOURCES_DIR_ENV), 'computer_magic.wav')
 
 @route_blueprint.route('/doorbell')
 def hello_world():
