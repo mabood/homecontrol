@@ -7,15 +7,15 @@ The "Agent" is deployed on site to collect data and perform home control operati
 ### Base
 The "Base" is a central hub that interfaces between internet-based automation systems such as HomeKit and the deployed "Agents" in the home. The Base listens for updates from Agents and maintains time-based records of sensor data. The Base exposes controls to HomeKit by integrating with [Homebridge](https://homebridge.io).
 
-## Getting Started
+## Raspberry Pi Setup 
 Follow these steps to install Home Control on your system
 
-### Raspberry Pi Setup 
-#### Installation
+### Installation
 Installing Home Control on Raspberry Pi requires a few prerequisite installation steps before running the setup scripts.
 ```
 $ sudo apt-get update
 $ sudo apt-get install git
+$ sudo apt-get install vim
 $ sudo apt-get install pip
 $ sudo apt-get install python3-venv
 ```
@@ -24,7 +24,42 @@ Clone the repository, and from the project root directory run the install script
 $ cd path/to/homecontrol
 $ scripts/install.sh
 ```
-#### Thermal Sensor Setup
+To ensure that Home Control is launched automatically after device boot, edit `rc.local`.
+```
+$ sudo vim /etc/rc.local
+
+# Add the following line before exit 0:
+
+sudo -H -u pi sh -c 'cd  /absolute/path/to/homecontrol && ./scripts/launch.sh base' &
+```
+
+### USB Speaker Setup
+Instructions paraphrased from [this blog post.](https://www.jeffgeerling.com/blog/2022/playing-sounds-python-on-raspberry-pi)
+Plug the USB speaker into the Raspberry Pi and confirm that it is discovered properly
+```
+$ cat /proc/asound/modules
+ 1 snd_usb_audio
+```
+You may also see a 0 for a built-in device. By default, the ALSA (Advanced Linux Sound Architecture) audio system will default to device 0. Switch to device 1 (the `snd_usb_audio` device) by configuring either the global `/etc/asound.conf` file, or a user-local `~/.asoundrc` file.
+```
+$ vim ~/.asoundrc
+
+pcm.!default {
+        type hw
+        card 1
+}
+
+ctl.!default {
+        type hw
+        card 1
+}
+```
+test the configuration with ASLA
+```
+$ speaker-test -c2 -twav -l7
+```
+
+### Thermal Sensor Setup
 To setup the 3-wire thermal sensor with raspberry pi GPIO, first enable GPIO in boot config
  ```
 $ sudo vim /boot/config.txt
