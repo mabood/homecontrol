@@ -16,22 +16,7 @@ function kill {
     RUN_DIR=$2
     RUN_PID_FILE="${RUN_DIR}/pid"
 
-    # Kill if already running
-    if [ -f "${RUN_PID_FILE:?}" ]; then
-        if ps aux | grep -f "${RUN_PID_FILE:?}"; then
-            PID=$(<"${RUN_PID_FILE:?}")
-            if ! kill -9 "$PID"; then
-                printf "\n>\tFailed to kill running ${APP_NAME} with pid %s\n" "$PID";
-                exit 2
-            else
-                printf "\n>\t${APP_NAME} with pid %s killed.\n" "$PID";
-            fi
-        else
-            printf "\n>\t${APP_NAME} not running.\n";
-        fi
-    else
-        printf "\n>\t${APP_NAME} not running.\n";
-    fi
+    pkill -F "${RUN_PID_FILE:?}";
 
     exit 0
 }
