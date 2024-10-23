@@ -149,9 +149,9 @@ class IntervalTimer(object):
 
 
 class Chime(object):
-    def __init__(self, resources_dir):
+    def __init__(self, resources_dir, filename):
         self.resources_dir = resources_dir
-        self.sound_file = os.path.join(resources_dir, 'computer_magic.wav')
+        self.sound_file = os.path.join(resources_dir, filename)
         pygame.mixer.init()
         self.sound = pygame.mixer.Sound(self.sound_file)
 
