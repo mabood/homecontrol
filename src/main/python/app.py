@@ -37,7 +37,7 @@ def create_app():
 
     # Play chime to indicate startup complete
     Chime(os.getenv(constants.RESOURCES_DIR_ENV), 'correct.wav').ring()
-    logging.info('App launched %s', datetime.datetime.now())
+    logging.info('Home Control %s launched' % os.getenv(constants.APP_NAME_ENV))
 
     return app
 
