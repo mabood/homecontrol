@@ -23,7 +23,7 @@ import os
 import logging
 import utils
 import constants
-from services import ServiceManager
+from services import ServiceManager, Chime
 from configparser import ConfigParser
 from flask import Flask
 
@@ -34,6 +34,10 @@ def create_app():
 
     from routes import route_blueprint
     app.register_blueprint(route_blueprint)
+
+    # Play chime to indicate startup complete
+    Chime(os.getenv(constants.RESOURCES_DIR_ENV), 'correct.wav').ring()
+    logging.info('Home Control %s launched' % os.getenv(constants.APP_NAME_ENV))
 
     return app
 
