@@ -29,12 +29,12 @@ function launch {
     fi
 
     # Check if agent is already running
-    if [ -f "${RUN_PID_FILE:?}" ]; then
-        if ps aux | grep -f "${RUN_PID_FILE:?}"; then
-            printf "Home Control ${APP_NAME} already running on pid=%s\n" "$(cat "${RUN_PID_FILE:?}")"
-            exit 0
-        fi
-    fi
+    # if [ -f "${RUN_PID_FILE:?}" ]; then
+    #     if ps aux | grep -f "${RUN_PID_FILE:?}"; then
+    #         printf "Home Control ${APP_NAME} already running on pid=%s\n" "$(cat "${RUN_PID_FILE:?}")"
+    #         exit 0
+    #     fi
+    # fi
 
     printf "Launching Home Control ${APP_NAME}...\n"
     activate_venv;
