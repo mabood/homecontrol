@@ -19,6 +19,31 @@ if [ -z "$SSH_TARGET" ]; then
     exit 1
 fi
 
+# This executes if you pass "list" as the first argument to the script
+if [ "$1" = "list" ]; then
+    echo "Fetching mounted drives from $SSH_TARGET (filtered by drives.conf)..."
+    
+    # Extract all drive names from the config file and join them with the pipe (|) operator for regex matching
+    DRIVE_LIST=$(grep "^DRIVE:" "$CONF_FILE" | cut -d':' -f2 | paste -sd '|' -)
+    
+    if [ -z "$DRIVE_LIST" ]; then
+        echo "No drives are configured in $CONF_FILE."
+        exit 0
+    fi
+    
+    # Run the remote command and store the output in a variable
+    MOUNTED_DRIVES=$(ssh "$SSH_TARGET" "df -h | grep '/Volumes/' | grep -E '$DRIVE_LIST'")
+    
+    # Check if the output is empty and print the appropriate message
+    if [ -z "$MOUNTED_DRIVES" ]; then
+        echo "0 drives matching configuration are currently mounted on the remote host."
+    else
+        echo "$MOUNTED_DRIVES"
+    fi
+    
+    exit 0
+fi
+
 # 3. Validate that a drive name argument was provided
 if [ -z "$1" ]; then
     echo "Error: No drive name provided."
