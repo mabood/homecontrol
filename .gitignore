@@ -7,3 +7,4 @@ agent/run/*
 agent/conf/agent-override.conf
 base/run/*
 base/conf/base-override.conf
+*.conf
