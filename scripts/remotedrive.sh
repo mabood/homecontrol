@@ -2,6 +2,8 @@
 
 # --- CONFIGURATION ---
 CONF_FILE="$(dirname "$0")/drives.conf" # Looks for drives.conf in the same folder
+# Create a unique socket file for this SSH session in a temporary directory
+SSH_SOCKET="/tmp/ssh_mux_$(date +%s)_$$"
 # ---------------------
 
 # 1. Validate that the configuration file exists
@@ -19,101 +21,143 @@ if [ -z "$SSH_TARGET" ]; then
     exit 1
 fi
 
-# This executes if you pass "list" as the first argument to the script
-if [ "$1" = "list" ]; then
-    echo "Fetching mounted drives from $SSH_TARGET (filtered by drives.conf)..."
+# Function to safely close the shared SSH connection when exiting
+cleanup() {
+    # Only run cleanup if the socket actually exists to avoid looping errors
+    if [ -S "$SSH_SOCKET" ]; then
+        echo -e "\nClosing background SSH connection..."
+        ssh -S "$SSH_SOCKET" -O exit "$SSH_TARGET" 2>/dev/null
+        rm -f "$SSH_SOCKET"
+    fi
+    exit 0
+}
+# TRIGGER CLEANUP on normal exit, Ctrl+C (INT), or termination signals (TERM)
+trap cleanup EXIT INT TERM
+
+echo "Establishing persistent connection to $SSH_TARGET..."
+echo "Please enter your SSH password when prompted (You will only need to do this once):"
+
+# Start the shared master connection in the background
+ssh -M -S "$SSH_SOCKET" -fN "$SSH_TARGET"
+
+if [ $? -ne 0 ]; then
+    echo "Failed to establish SSH connection. Exiting."
+    exit 1
+fi
+
+# Define a standard function to use the shared SSH tunnel
+run_ssh() {
+    ssh -S "$SSH_SOCKET" "$SSH_TARGET" "$1"
+}
+
+# Infinite loop to keep the UI open
+while true; do
+    clear
+    echo "========================================="
+    echo " Remote Mac Drive Manager"
+    echo " Target: $SSH_TARGET"
+    echo "========================================="
     
-    # Extract all drive names from the config file and join them with the pipe (|) operator for regex matching
+    # --- LIST DRIVES ---
+    echo "Fetching mounted drives..."
     DRIVE_LIST=$(grep "^DRIVE:" "$CONF_FILE" | cut -d':' -f2 | paste -sd '|' -)
     
     if [ -z "$DRIVE_LIST" ]; then
         echo "No drives are configured in $CONF_FILE."
-        exit 0
-    fi
-    
-    # Run the remote command and store the output in a variable
-    MOUNTED_DRIVES=$(ssh "$SSH_TARGET" "df -h | grep '/Volumes/' | grep -E '$DRIVE_LIST'")
-    
-    # Check if the output is empty and print the appropriate message
-    if [ -z "$MOUNTED_DRIVES" ]; then
-        echo "0 drives matching configuration are currently mounted on the remote host."
     else
-        echo "$MOUNTED_DRIVES"
+        MOUNTED_DRIVES=$(run_ssh "df -h | grep '/Volumes/' | grep -E '$DRIVE_LIST'")
+        if [ -z "$MOUNTED_DRIVES" ]; then
+            echo "-> 0 drives matching configuration are currently mounted."
+        else
+            echo "$MOUNTED_DRIVES"
+        fi
     fi
+    echo "========================================="
     
-    exit 0
-fi
-
-# 3. Validate that a drive name argument was provided
-if [ -z "$1" ]; then
-    echo "Error: No drive name provided."
-    echo "Usage: $0 <DRIVE_NAME>"
-    echo "Available drives:"
+    # --- DISPLAY AVAILABLE DRIVES ---
+    echo "Configured Drives:"
     grep "^DRIVE:" "$CONF_FILE" | cut -d':' -f2 | sed 's/^/  - /'
-    exit 1
-fi
+    echo "-----------------------------------------"
+    
+    # --- PROMPT AND PARSING ---
+    echo "Commands: mount <drive>, unmount <drive>, exit"
+    echo "-----------------------------------------"
+    read -p "Command > " ACTION DRIVE_NAME
 
-DRIVE_NAME="$1"
+    # Handle empty input or exit
+    if [ -z "$ACTION" ] || [ "$ACTION" = "exit" ]; then
+        break
+    fi
 
-# 4. Lookup the UUID from the configuration file
-# This searches for lines starting with DRIVE:DRIVE_NAME:
-DRIVE_UUID=$(grep "^DRIVE:$DRIVE_NAME:" "$CONF_FILE" | cut -d':' -f3)
+    # Ensure a drive name was provided for the command
+    if [ -z "$DRIVE_NAME" ]; then
+        echo "Error: You must specify a drive name. Example: mount MyDrive"
+        sleep 2
+        continue
+    fi
 
-if [ -z "$DRIVE_UUID" ]; then
-    echo "Error: Drive '$DRIVE_NAME' is not configured in $CONF_FILE."
-    echo "Available drives:"
-    grep "^DRIVE:" "$CONF_FILE" | cut -d':' -f2 | sed 's/^/  - /'
-    exit 1
-fi
+    # Lookup the UUID from the configuration file
+    DRIVE_UUID=$(grep "^DRIVE:$DRIVE_NAME:" "$CONF_FILE" | cut -d':' -f3)
 
-# High-speed scannability menu
-echo "========================================="
-echo " Remote Mac Drive Manager: $DRIVE_NAME"
-echo " Target: $SSH_TARGET"
-echo "========================================="
-echo "1) Mount & Unlock Drive"
-echo "2) Unmount & Lock Drive"
-echo "3) Check Drive Status"
-echo "========================================="
-read -p "Select an option [1-3]: " CHOICE
+    if [ -z "$DRIVE_UUID" ]; then
+        echo "Error: Drive '$DRIVE_NAME' is not configured."
+        sleep 2
+        continue
+    fi
 
-case $CHOICE in
-    1)
-        echo -n "Enter the encryption password for $DRIVE_NAME: "
-        # Read the password without echoing it to the terminal screen
-        read -s DRIVE_PASS
-        echo ""
-        
-        echo "Connecting to $SSH_TARGET to unlock $DRIVE_NAME..."
-        
-        # Pass the password over standard input to 'diskutil' on the remote Mac
-        ssh "$SSH_TARGET" "
-            # Try APFS unlocking first
-            if diskutil apfs list | grep -q '$DRIVE_UUID'; then
-                echo '$DRIVE_PASS' | diskutil apfs unlockVolume $DRIVE_UUID -stdinpassphrase
-            # Fallback to older CoreStorage (HFS+ Encrypted) if APFS fails
-            else
-                echo '$DRIVE_PASS' | diskutil coreStorage unlockVolume $DRIVE_UUID -stdinpassphrase
-            fi
-        "
-        ;;
-        
-    2)
-        echo "Connecting to $SSH_TARGET to unmount $DRIVE_NAME..."
-        ssh "$SSH_TARGET" "
-            diskutil unmount $DRIVE_UUID
-        "
-        ;;
-        
-    3)
-        echo "Fetching status for $DRIVE_NAME from $SSH_TARGET..."
-        ssh "$SSH_TARGET" "
-            diskutil info $DRIVE_UUID | grep -E 'Volume Name|Mounted|Locked'
-        "
-        ;;
-        
-    *)
-        echo "Invalid selection. Exiting."
-        exit 1
-        ;;
-esac
+    echo "-----------------------------------------"
+
+    # --- EXECUTE COMMANDS ---
+    case "$ACTION" in
+        mount)
+            # Loop indefinitely until the unlock is successful or the user aborts
+            while true; do
+                echo -n "Enter the encryption password for $DRIVE_NAME (or leave blank to abort): "
+                read -s DRIVE_PASS
+                echo ""
+                
+                # Allow user to break out of the password prompt
+                if [ -z "$DRIVE_PASS" ]; then
+                    echo "Aborting mount command."
+                    break
+                fi
+                
+                echo "Connecting to unlock $DRIVE_NAME..."
+                
+                # Execute the remote command
+                run_ssh "
+                    if diskutil apfs list | grep -q '$DRIVE_UUID'; then
+                        echo '$DRIVE_PASS' | diskutil apfs unlockVolume $DRIVE_UUID -stdinpassphrase
+                    else
+                        echo '$DRIVE_PASS' | diskutil coreStorage unlockVolume $DRIVE_UUID -stdinpassphrase
+                    fi
+                "
+                
+                # Capture the exit status of the SSH command
+                if [ $? -eq 0 ]; then
+                    echo "Successfully unlocked $DRIVE_NAME!"
+                    break
+                else
+                    echo -e "\nError: Incorrect password or failed to unlock. Please try again."
+                fi
+            done
+            ;;
+            
+        unmount)
+            echo "Connecting to unmount $DRIVE_NAME..."
+            run_ssh "diskutil unmount $DRIVE_UUID"
+            ;;
+            
+        *)
+            echo "Error: Unknown command '$ACTION'."
+            echo "Supported commands are: mount, unmount, exit"
+            sleep 2
+            continue
+            ;;
+    esac
+    
+    # Brief pause so you can see the result of the command before the screen clears
+    echo "-----------------------------------------"
+    echo "Command complete. Refreshing..."
+    sleep 1.5
+done
