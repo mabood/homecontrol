@@ -80,7 +80,7 @@ while true; do
     echo "-----------------------------------------"
     
     # --- PROMPT AND PARSING ---
-    echo "Commands: mount <drive>, unmount <drive>, exit"
+    echo "Commands: mount <drive>, unmount <drive>, force-unmount <drive>, exit"
     echo "-----------------------------------------"
     read -p "Command > " ACTION DRIVE_NAME
 
@@ -122,7 +122,7 @@ while true; do
                     break
                 fi
                 
-                echo "Connecting to unlock $DRIVE_NAME..."
+                echo "Attempting to mount $DRIVE_NAME..."
                 
                 # Execute the remote command
                 run_ssh "
@@ -135,7 +135,7 @@ while true; do
                 
                 # Capture the exit status of the SSH command
                 if [ $? -eq 0 ]; then
-                    echo "Successfully unlocked $DRIVE_NAME!"
+                    echo "Successfully mounted $DRIVE_NAME!"
                     break
                 else
                     echo -e "\nError: Incorrect password or failed to unlock. Please try again."
@@ -144,13 +144,18 @@ while true; do
             ;;
             
         unmount)
-            echo "Connecting to unmount $DRIVE_NAME..."
+            echo "Attempting to unmount $DRIVE_NAME..."
             run_ssh "diskutil unmount $DRIVE_UUID"
+            ;;
+
+        force-unmount)
+            echo "Attempting to force-unmount $DRIVE_NAME..."
+            run_ssh "diskutil unmount $DRIVE_UUID --force"
             ;;
             
         *)
             echo "Error: Unknown command '$ACTION'."
-            echo "Supported commands are: mount, unmount, exit"
+            echo "Supported commands are: mount, unmount, force-unmount, exit"
             sleep 2
             continue
             ;;
