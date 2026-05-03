@@ -62,8 +62,12 @@ class SwitchbotController:
         mac_address = self._devices[name]
         
         # 1. Wrap the MAC string into a bleak BLEDevice object
-        # Format: BLEDevice(address, name, details, rssi)
-        ble_device = BLEDevice(mac_address, name, None, 0)
+        try:
+            # Try newer bleak version (expects 4 arguments including RSSI)
+            ble_device = BLEDevice(mac_address, name, None, 0)
+        except TypeError:
+            # Fall back to older bleak version (expects 3 arguments)
+            ble_device = BLEDevice(mac_address, name, None)
         
         # 2. Pass 'device=' instead of 'mac='
         bot = Switchbot(device=ble_device)
