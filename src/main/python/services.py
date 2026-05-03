@@ -24,6 +24,7 @@ import constants
 import sensors
 import miniaudio
 import asyncio
+from bleak.backends.device import BLEDevice
 from switchbot import Switchbot
 
 class Chime(object):
