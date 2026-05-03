@@ -35,5 +35,5 @@ def doorbell():
     if chime is not None:
         chime.ring()
         return "<p>Ring Ring</p>"
-    else
+    else:
         return "<p>No Chime Configured</p>"
