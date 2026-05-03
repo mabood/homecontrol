@@ -60,19 +60,18 @@ class SwitchbotController:
             raise KeyError(f"Device '{name}' not found in config")
             
         mac_address = self._devices[name]
-        
-        # 1. Wrap the MAC string into a bleak BLEDevice object
-        try:
-            # Try newer bleak version (expects 4 arguments including RSSI)
-            ble_device = BLEDevice(mac_address, name, None, 0)
-        except TypeError:
-            # Fall back to older bleak version (expects 3 arguments)
-            ble_device = BLEDevice(mac_address, name, None)
-        
-        # 2. Pass 'device=' instead of 'mac='
-        bot = Switchbot(device=ble_device)
 
+        # 1. Put ALL the setup inside the async function
         async def perform_action():
+            # Try new bleak format, fall back to old format
+            try:
+                ble_device = BLEDevice(mac_address, name, None, 0)
+            except TypeError:
+                ble_device = BLEDevice(mac_address, name, None)
+            
+            # Initialize the bot INSIDE the async function
+            bot = Switchbot(device=ble_device)
+
             if action == 'on':
                 await bot.turn_on()
             elif action == 'off':
@@ -82,6 +81,15 @@ class SwitchbotController:
             else:
                 raise ValueError(f"Invalid action '{action}'. Use 'on', 'off', or 'press'.")
 
-        asyncio.run(perform_action())
+        # 2. Safely create and manage the event loop for this Flask thread
+        loop = asyncio.new_event_loop()
+        asyncio.set_event_loop(loop)
+        try:
+            # Run the task to completion
+            loop.run_until_complete(perform_action())
+        finally:
+            # Always clean up the loop so we don't leak memory on future requests
+            loop.close()
             
         return mac_address
+
