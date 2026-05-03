@@ -31,7 +31,7 @@ class Chime(object):
     def __init__(self, config, resources_dir, filename):
         capabilities = config[constants.CONFIG_SECTION_CAPABILITIES]
         if not eval(capabilities['speaker_enabled']):
-            logging.error('Speaker is not enabled in configuration. See README for setup instructions')
+            logging.error('Cannot play \'%s\' - speaker is not enabled in configuration. See README for setup instructions', filename)
             return None
         self.resources_dir = resources_dir
         self.stream = miniaudio.stream_file(os.path.join(resources_dir, filename))
