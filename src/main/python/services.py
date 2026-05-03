@@ -22,16 +22,14 @@ import os
 import logging
 import constants
 import sensors
-import pygame
+import miniaudio
 
 class Chime(object):
     def __init__(self, resources_dir, filename):
         self.resources_dir = resources_dir
-        self.sound_file = os.path.join(resources_dir, filename)
-        pygame.mixer.init()
-        self.sound = pygame.mixer.Sound(self.sound_file)
+        self.stream = miniaudio.stream_file(os.path.join(resources_dir, filename))
+        self.device = miniaudio.PlaybackDevice()
 
     def ring(self):
-        playing = self.sound.play()
-        while playing.get_busy():
-            pygame.time.delay(100)
+        # Plays the sound file in a background thread
+        self.device.start(self.stream)
