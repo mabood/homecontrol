@@ -12,8 +12,7 @@ readonly UTILS=$(pwd)/scripts/utils.sh
 source "${UTILS}"
 
 function kill {
-    APP_NAME=$1
-    RUN_DIR=$2
+    RUN_DIR=$1
     RUN_PID_FILE="${RUN_DIR}/pid"
 
     if pkill -9 -F "${RUN_PID_FILE:?}"; then
@@ -28,16 +27,10 @@ if ! set_environment_vars; then
     exit 3;
 fi
 
-if [ $# != 1 ]; then
-    printf "Usage: %s directive\n\n" $0;
-    print_supported_directives;
-    exit 1;
-elif [ "$1" == "$AGENT" ]; then
-    kill $1 "${AGENT_RUN_DIR:?}";
-elif [ "$1" == "$BASE" ]; then
-    kill $1 "${BASE_RUN_DIR:?}";
-else
+if [ $# != 0 ]; then
     printf "Invalid directive.\n\n";
     print_supported_directives;
     exit 2;
+else
+    kill "${BASE_RUN_DIR:?}";
 fi

@@ -1,5 +1,5 @@
 #
-# Home Control - Agent Constants
+# Home Control - Constants
 # Created by Michael Abood on 04/19/20
 #
 #    This file is part of Home Control.

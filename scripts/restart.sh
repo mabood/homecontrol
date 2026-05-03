@@ -14,13 +14,13 @@ source "${UTILS}"
 function restart {
 
     # Kill if already running
-    if ! $(pwd)/scripts/kill.sh "$1"; then
-        printf "\n>\tFailed to kill running $1.\n"
+    if ! $(pwd)/scripts/kill.sh; then
+        printf "\n>\tFailed to kill running base.\n"
         exit 4
     fi
 
-    if ! $(pwd)/scripts/launch.sh "$1"; then
-        printf "\n>\tFailed to launch $1.\n"
+    if ! $(pwd)/scripts/launch.sh; then
+        printf "\n>\tFailed to launch base.\n"
         exit 5
     fi
 
@@ -38,17 +38,11 @@ if ! set_environment_vars; then
     exit 3;
 fi
 
-if [ $# != 1 ]; then
-    printf "Usage: %s directive\n\n" $0;
-    print_supported_directives;
-    exit 1;
-elif [ "$1" == "$AGENT" ]; then
-    restart $1;
-elif [ "$1" == "$BASE" ]; then
-    restart $1;
-else
+if [ $# != 0 ]; then
     printf "Invalid directive.\n\n";
     print_supported_directives;
     exit 2;
+else
+    restart
 fi
 

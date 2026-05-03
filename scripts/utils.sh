@@ -1,7 +1,6 @@
 #!/bin/bash
 
 # script argument constants
-AGENT="agent"
 BASE="base"
 
 # Supported OS constants
@@ -11,11 +10,6 @@ MAC="MacOS"
 # Name of homecontrol root directory
 HOMECONTROL_DIR_NAME="homecontrol"
 
-function print_supported_directives {
-    printf "Supported directives:\n"
-    printf "   %s\n" ${AGENT} ${BASE}
-}
-
 function set_environment_vars {
     current_dir=${PWD##*/}
     if [[ "${current_dir}" != "${HOMECONTROL_DIR_NAME}" ]]; then
@@ -24,16 +18,10 @@ function set_environment_vars {
     else
         export HOMECONTROL=${PWD}
         export RESOURCES_DIR=${HOMECONTROL}/resources
-        export AGENT_DIR=${HOMECONTROL}/${AGENT}
         export BASE_DIR=${HOMECONTROL}/${BASE}
         export VENV_DIR=${HOMECONTROL}/venv
         export REQUIREMENTS_FILE=${HOMECONTROL}/requirements.txt
         export FLASK_APP=${HOMECONTROL}/src/main/python/app.py
-        export PROTO_SRC_DIR=${HOMECONTROL}/src/main/proto
-        export PROTO_GEN_PYTHON_DIR=${HOMECONTROL}/build/gen/python
-        export AGENT_RUN_DIR=${AGENT_DIR}/run
-        export AGENT_CONF_DIR=${AGENT_DIR}/conf
-        export AGENT_CONF_OVERRIDE_FILE=${AGENT_CONF_DIR}/${AGENT}-override.conf
         export BASE_RUN_DIR=${BASE_DIR}/run
         export BASE_CONF_DIR=${BASE_DIR}/conf
         export BASE_CONF_OVERRIDE_FILE=${BASE_CONF_DIR}/${BASE}-override.conf
