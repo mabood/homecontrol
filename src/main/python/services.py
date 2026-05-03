@@ -51,7 +51,7 @@ class SwitchbotController:
         from the application configuration.
         """
         # Store the devices dictionary directly for faster lookups
-        self.devices = config[constants.CONFIG_SECTION_CAPABILITIES].get("switchbot", {})
+        self.devices = config.get(constants.CONFIG_SECTION_SWITCHBOT, {})
 
     def operate_switchbot(self, name: str, action: str) -> str:
         """

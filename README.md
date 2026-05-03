@@ -104,11 +104,24 @@ Now that we have an active thermal sensor connected, add the sensor directory to
 ```
 $ cd path/to/homecontrol
 $ $ vim base/conf/base-override.conf
+
 [CAPABILITIES]
 thermometer_enabled=1
 thermometer_device_dir=/sys/bus/w1/devices/28-03189779d98f 
 thermometer_device_file=w1_slave
 ```
+
+### Switchbot Controller Setup
+To contol a BLE Switchbot button-pusher, your Raspberry Pi model must support Bluetooth Low Energy (BLE). Simply add the Switchbot device MAC address to the base config override file:
+ ```
+$ cd path/to/homecontrol
+$ $ vim base/conf/base-override.conf
+
+[SWITCHBOT]
+coffee_maker=AA:BB:CC:00:11:22
+```
+Switchbot displays the BLE MAC address in the Switchbot app under "Device Info."
+
 	
 ## Running Home Control
 Use the launch script to launch the intended Home Control application
