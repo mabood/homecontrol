@@ -31,5 +31,5 @@ route_blueprint = Blueprint('route_blueprint', __name__)
 @route_blueprint.route('/doorbell')
 def doorbell():
     logging.info('Received doorbell ring at %s', datetime.datetime.now())
-    Base().doorbell.ring()
+    Base().doorbell_chime.ring()
     return "<p>Ring Ring</p>"
