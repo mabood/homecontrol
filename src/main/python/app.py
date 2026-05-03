@@ -96,8 +96,8 @@ class Base:
             self.config = ConfigParser()
             self.config.read(config_hierarchy)
             utils.setup_logger(app_name, log_directory, self.config)
-            doorbell_chime = Chime(self.config, os.getenv(constants.RESOURCES_DIR_ENV), 'computer_magic.wav')
-            switchbot_controller = SwitchbotController(self.config)
+            self.doorbell_chime = Chime(self.config, os.getenv(constants.RESOURCES_DIR_ENV), 'computer_magic.wav')
+            self.switchbot_controller = SwitchbotController(self.config)
 
         except Exception as e:
             logging.error('%s setup failed due to exception: %s', app_name, e)

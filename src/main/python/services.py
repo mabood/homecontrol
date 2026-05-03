@@ -45,22 +45,24 @@ class Chime(object):
             self._device.start(self._stream)
 
 class SwitchbotController:
-    def __init__(self, config: dict):
+    _devices = None
+
+    def __init__(self, config):
         """
         Initializes the service and pre-loads the device mappings 
         from the application configuration.
         """
-        self.devices = dict(config[constants.CONFIG_SECTION_SWITCHBOT]) if config.has_section(constants.CONFIG_SECTION_SWITCHBOT) else {}
+        self._devices = dict(config[constants.CONFIG_SECTION_SWITCHBOT]) if config.has_section(constants.CONFIG_SECTION_SWITCHBOT) else {}
 
     def operate_switchbot(self, name: str, action: str) -> str:
         """
         Synchronous method. Looks up the device, creates an async task, 
         and runs it to completion using asyncio.run().
         """
-        if name not in self.devices:
+        if name not in self._devices:
             raise KeyError(f"Device '{name}' not found in config")
             
-        mac_address = self.devices[name]
+        mac_address = self._devices[name]
         bot = Switchbot(mac=mac_address)
 
         # 1. Define the asynchronous operation internally
