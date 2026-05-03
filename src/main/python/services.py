@@ -38,5 +38,6 @@ class Chime(object):
         self.device = miniaudio.PlaybackDevice()
 
     def ring(self):
-        # Plays the sound file in a background thread
-        self.device.start(self.stream)
+        if self.device is not None:
+            # Plays the sound file in a background thread
+            self.device.start(self.stream)
