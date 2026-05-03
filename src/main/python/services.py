@@ -55,17 +55,18 @@ class SwitchbotController:
         self._devices = dict(config[constants.CONFIG_SECTION_SWITCHBOT]) if config.has_section(constants.CONFIG_SECTION_SWITCHBOT) else {}
 
     def operate_switchbot(self, name: str, action: str) -> str:
-        """
-        Synchronous method. Looks up the device, creates an async task, 
-        and runs it to completion using asyncio.run().
-        """
         if name not in self._devices:
             raise KeyError(f"Device '{name}' not found in config")
             
         mac_address = self._devices[name]
-        bot = Switchbot(mac=mac_address)
+        
+        # 1. Wrap the MAC string into a bleak BLEDevice object
+        # Format: BLEDevice(address, name, details, rssi)
+        ble_device = BLEDevice(mac_address, name, None, 0)
+        
+        # 2. Pass 'device=' instead of 'mac='
+        bot = Switchbot(device=ble_device)
 
-        # 1. Define the asynchronous operation internally
         async def perform_action():
             if action == 'on':
                 await bot.turn_on()
@@ -76,8 +77,6 @@ class SwitchbotController:
             else:
                 raise ValueError(f"Invalid action '{action}'. Use 'on', 'off', or 'press'.")
 
-        # 2. Run the asynchronous operation synchronously, blocking the thread
-        # until the Bluetooth command is fully completed.
         asyncio.run(perform_action())
             
         return mac_address
