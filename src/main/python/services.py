@@ -24,7 +24,6 @@ import constants
 import sensors
 import miniaudio
 import asyncio
-from bleak.backends.device import BLEDevice
 from switchbot import Switchbot
 
 class Chime(object):
@@ -56,28 +55,16 @@ class SwitchbotController:
         self._devices = dict(config[constants.CONFIG_SECTION_SWITCHBOT]) if config.has_section(constants.CONFIG_SECTION_SWITCHBOT) else {}
 
     def operate_switchbot(self, name: str, action: str) -> str:
+        # 1. Look up the MAC address
         if name not in self._devices:
             raise KeyError(f"Device '{name}' not found in config")
             
         mac_address = self._devices[name]
 
-        # 1. Put ALL the setup inside the async function
+        # 2. Define the async hardware operation
         async def perform_action():
-            # Try new bleak format, fall back to old format
-            try:
-                ble_device = BLEDevice(mac_address, name, None, -60)
-            except TypeError:
-                ble_device = BLEDevice(mac_address, name, None)
-            
-            # --- THE NEW FIX ---
-            # If the older bleak library didn't add the rssi attribute, we add it manually
-            # so PySwitchbot doesn't crash when it looks for it.
-            if not hasattr(ble_device, 'rssi'):
-                ble_device.rssi = -60
-            # -------------------
-            
-            # Initialize the bot INSIDE the async function
-            bot = Switchbot(device=ble_device)
+            # The beautiful, simple initialization!
+            bot = Switchbot(mac=mac_address)
 
             if action == 'on':
                 await bot.turn_on()
@@ -88,14 +75,15 @@ class SwitchbotController:
             else:
                 raise ValueError(f"Invalid action '{action}'. Use 'on', 'off', or 'press'.")
 
-        # 2. Safely create and manage the event loop for this Flask thread
+        # 3. Create a clean event loop for this specific Flask background thread
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
+        
         try:
-            # Run the task to completion
+            # Run the Bluetooth transmission synchronously
             loop.run_until_complete(perform_action())
         finally:
-            # Always clean up the loop so we don't leak memory on future requests
+            # Always clean up the loop to prevent memory leaks
             loop.close()
             
         return mac_address
