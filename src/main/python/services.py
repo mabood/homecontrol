@@ -63,7 +63,18 @@ class SwitchbotController:
 
         # 1. Put ALL the setup inside the async function
         async def perform_action():
-            ble_device = BLEDevice(mac_address, name, None, 0)
+            # Try new bleak format, fall back to old format
+            try:
+                ble_device = BLEDevice(mac_address, name, None, -60)
+            except TypeError:
+                ble_device = BLEDevice(mac_address, name, None)
+            
+            # --- THE NEW FIX ---
+            # If the older bleak library didn't add the rssi attribute, we add it manually
+            # so PySwitchbot doesn't crash when it looks for it.
+            if not hasattr(ble_device, 'rssi'):
+                ble_device.rssi = -60
+            # -------------------
             
             # Initialize the bot INSIDE the async function
             bot = Switchbot(device=ble_device)
