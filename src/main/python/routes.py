@@ -40,11 +40,10 @@ def doorbell():
         return "<p>No Chime Configured</p>"
 
 @route_blueprint.route('/switchbot/<name>/<action>', methods=['POST'])
-async def operate_switch(name, action):
+def operate_switch(name, action):  # <-- Removed 'async'
     try:
-        # Pass the name and action to the class instance. 
-        # The class already knows the MAC addresses from initialization!
-        mac_address = await Base().switchbot_controller.operate_switchbot(name, action)
+        # Standard function call
+        mac_address = Base().switchbot_controller.operate_switchbot(name, action) # <-- Removed 'await'
         
         return jsonify({
             "status": "success",
@@ -54,15 +53,12 @@ async def operate_switch(name, action):
         }), 200
 
     except KeyError as ke:
-        # Caught when the device name isn't in the config
         return jsonify({"error": str(ke).strip("'")}), 404
         
     except ValueError as ve:
-        # Caught an invalid action ('dance', 'jump', etc.)
         return jsonify({"error": str(ve)}), 400
         
     except Exception as e:
-        # Caught a Bluetooth connection issue or unexpected error
         return jsonify({
             "status": "error",
             "message": str(e)
