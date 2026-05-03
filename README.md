@@ -27,7 +27,7 @@ $ sudo vim /etc/rc.local
 
 # Add the following line before exit 0:
 
-sudo -H -u pi sh -c 'cd  /absolute/path/to/homecontrol && ./scripts/launch.sh base' &
+sudo -H -u pi sh -c 'cd  /absolute/path/to/homecontrol && ./scripts/launch.sh' &
 ```
 
 ### USB Speaker Setup

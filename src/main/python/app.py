@@ -23,7 +23,7 @@ import os
 import logging
 import utils
 import constants
-from services import Chime
+from services import Chime, SwitchbotController
 from configparser import ConfigParser
 from flask import Flask
 
@@ -46,6 +46,7 @@ class Base:
     _instance = None
     config = None
     doorbell_chime = None
+    switchbot_controller = None
     
     def __new__(cls):
         if cls._instance is None:
@@ -96,6 +97,7 @@ class Base:
             self.config.read(config_hierarchy)
             utils.setup_logger(app_name, log_directory, self.config)
             doorbell_chime = Chime(self.config, os.getenv(constants.RESOURCES_DIR_ENV), 'computer_magic.wav')
+            switchbot_controller = SwitchbotController(self.config)
 
         except Exception as e:
             logging.error('%s setup failed due to exception: %s', app_name, e)

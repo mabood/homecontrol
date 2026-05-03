@@ -23,10 +23,9 @@ import logging
 import constants
 import sensors
 import miniaudio
+from switchbot import Switchbot
 
 class Chime(object):
-    stream = None
-    device = None
 
     def __init__(self, config, resources_dir, filename):
         capabilities = config[constants.CONFIG_SECTION_CAPABILITIES]
@@ -41,3 +40,40 @@ class Chime(object):
         if self.device is not None:
             # Plays the sound file in a background thread
             self.device.start(self.stream)
+
+class SwitchbotService:
+    def __init__(self, config: dict):
+        """
+        Initializes the service and pre-loads the device mappings 
+        from the application configuration.
+        """
+        # Store the devices dictionary directly for faster lookups
+        self.devices = config[constants.CONFIG_SECTION_CAPABILITIES].get("switchbot", {})
+
+    async def operate_switchbot(self, name: str, action: str) -> str:
+        """
+        Looks up a Switchbot by name, connects via BLE, 
+        and performs the requested action.
+        
+        Returns the MAC address upon success, or raises an error.
+        """
+        # 1. Look up the device MAC address from the pre-loaded dictionary
+        if name not in self.devices:
+            raise KeyError(f"Device '{name}' not found in config")
+            
+        mac_address = self.devices[name]
+        
+        # 2. Initialize the bot
+        bot = Switchbot(mac=mac_address)
+
+        # 3. Perform the action
+        if action == 'on':
+            await bot.turn_on()
+        elif action == 'off':
+            await bot.turn_off()
+        elif action == 'press':
+            await bot.press()
+        else:
+            raise ValueError(f"Invalid action '{action}'. Use 'on', 'off', or 'press'.")
+            
+        return mac_address
