@@ -40,7 +40,7 @@ def doorbell():
         return "<p>No Chime Configured</p>"
 
 @route_blueprint.route('/switchbot/<name>/<action>', methods=['POST'])
-def operate_switch(name, action):  # <-- Removed 'async'
+def operate_switch(name, action):
     try:
         # Standard function call
         mac_address = Base().switchbot_controller.operate_switchbot(name, action) # <-- Removed 'await'
