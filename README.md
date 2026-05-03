@@ -1,11 +1,8 @@
 # Home Control
 An exploration in automation and control of the home using low-cost, single-board computers and a wireless LAN.
 
-### Agent
-The "Agent" is deployed on site to collect data and perform home control operations, integrating with sensors and external devices in the home. Agents send sensor data and receive commands from the Home Control "Base" over the local area network.
-
 ### Base
-The "Base" is a central hub that interfaces between internet-based automation systems such as HomeKit and the deployed "Agents" in the home. The Base listens for updates from Agents and maintains time-based records of sensor data. The Base exposes controls to HomeKit by integrating with [Homebridge](https://homebridge.io).
+The "Base" is a single running instance of homecontrol on a device interacting with internet-based automation systems such as HomeKit and other deployed bases in the home. The Base exposes controls and real time sensor information to HomeKit by integrating with [Homebridge](https://homebridge.io).
 
 ## Raspberry Pi Setup 
 Follow these steps to install Home Control on your system
@@ -58,6 +55,13 @@ test the configuration with ASLA
 ```
 $ speaker-test -c2 -twav -l7
 ```
+Now that we have an active speaker connected, enable it in the base config override file
+```
+$ cd path/to/homecontrol
+$ $ vim base/conf/base-override.conf
+[CAPABILITIES]
+speaker_enabled=1
+```
 
 ### Thermal Sensor Setup
 To setup the 3-wire thermal sensor with raspberry pi GPIO, first enable GPIO in boot config
@@ -96,10 +100,11 @@ $ cat /sys/bus/w1/devices/28-03189779d98f/w1_slave
 a2 01 55 05 7f a5 a5 66 ce : crc=ce YES
 a2 01 55 05 7f a5 a5 66 ce t=26125
 ```
-Now that we have an active thermal sensor connected, add the sensor directory to the agent config override file
+Now that we have an active thermal sensor connected, add the sensor directory to the base config override file
 ```
 $ cd path/to/homecontrol
-$ $ vim agent/conf/agent-override.conf
+$ $ vim base/conf/base-override.conf
+[CAPABILITIES]
 thermometer_enabled=1
 thermometer_device_dir=/sys/bus/w1/devices/28-03189779d98f 
 thermometer_device_file=w1_slave
@@ -109,5 +114,5 @@ thermometer_device_file=w1_slave
 Use the launch script to launch the intended Home Control application
 ```
 $ cd path/to/homecontrol
-$ scripts/launch.sh agent
+$ scripts/launch.sh
 ```
