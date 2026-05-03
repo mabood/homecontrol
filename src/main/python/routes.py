@@ -26,10 +26,9 @@ from flask import Blueprint
 from services import Chime
 
 route_blueprint = Blueprint('route_blueprint', __name__)
-chime = Chime(os.getenv(constants.RESOURCES_DIR_ENV), 'computer_magic.wav')
 
 @route_blueprint.route('/doorbell')
 def doorbell():
     logging.info('Received doorbell ring at %s', datetime.datetime.now())
-    chime.ring()
+    Base().doorbell.ring()
     return "<p>Ring Ring</p>"
