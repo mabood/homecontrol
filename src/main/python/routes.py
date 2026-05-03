@@ -31,5 +31,9 @@ route_blueprint = Blueprint('route_blueprint', __name__)
 @route_blueprint.route('/doorbell')
 def doorbell():
     logging.info('Received doorbell ring at %s', datetime.datetime.now())
-    Base().doorbell_chime.ring()
-    return "<p>Ring Ring</p>"
+    chime = Base().doorbell_chime
+    if chime is not None:
+        chime.ring()
+        return "<p>Ring Ring</p>"
+    else
+        return "<p>No Chime Configured</p>"
