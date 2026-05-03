@@ -50,8 +50,7 @@ class SwitchbotController:
         Initializes the service and pre-loads the device mappings 
         from the application configuration.
         """
-        # Store the devices dictionary directly for faster lookups
-        self.devices = config.get(constants.CONFIG_SECTION_SWITCHBOT, {})
+        self.devices = dict(config[constants.CONFIG_SECTION_SWITCHBOT]) if config.has_section(constants.CONFIG_SECTION_SWITCHBOT) else {}
 
     def operate_switchbot(self, name: str, action: str) -> str:
         """
