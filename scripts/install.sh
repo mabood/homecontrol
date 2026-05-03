@@ -79,37 +79,6 @@ function install {
         print_install_result_and_exit 8;
     fi
 
-    # codegen python bindings
-    if ! mkdir -p "${PROTO_GEN_PYTHON_DIR:?}"; then
-        printf "\n>\tFailed to create gRPC codegen directory at %s\n" "${PROTO_GEN_PYTHON_DIR:?}"
-        print_install_result_and_exit 9;
-    fi
-
-    printf "\n>\tCompiling gRPC protobuf files...\n"
-    if ! rm -rf "${PROTO_GEN_PYTHON_DIR:?}/*"; then
-        printf "\n>\tfailed clean python protobuf output directory\n"
-        print_install_result_and_exit 10;
-    fi
-
-    GEN_PROTO_GRPC="python -m grpc_tools.protoc --proto_path=${PROTO_SRC_DIR:?} --python_out=${PROTO_GEN_PYTHON_DIR:?} --grpc_python_out=${PROTO_GEN_PYTHON_DIR:?} ${PROTO_SRC_DIR:?}/climate.proto"
-    if ! ${GEN_PROTO_GRPC}; then
-        printf "\n>\tfailed generate grpc protobuf bindings\n"
-        print_install_result_and_exit 10;
-    fi
-
-    printf "\n>\tAdding generated gRPC python files to path...\n"
-    VENV_DIR_PYTHON_DIR=$(find "${VENV_DIR:?}"/lib -maxdepth 1 -name "python*")
-    if [ -z "${VENV_DIR_PYTHON_DIR}" ]; then
-        printf "\n>\tCannot locate python3.X directory in venv.\n"
-        print_install_result_and_exit 11;
-    fi
-
-    # add generated python files to path
-    if ! echo "${PROTO_GEN_PYTHON_DIR:?}" > "${VENV_DIR_PYTHON_DIR:?}"/site-packages/generated-protos.pth; then
-        printf "\n>\tFailed to add generated python files to venv path.\n"
-        print_install_result_and_exit 12;
-    fi
-
     printf "\n>\tCreating agent config override file...\n"
     # create agent config override file
     if ! [ -f "${AGENT_CONF_OVERRIDE_FILE}" ]; then

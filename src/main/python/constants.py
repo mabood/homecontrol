@@ -1,5 +1,5 @@
 #
-# Home Control - Agent Constants
+# Home Control - Constants
 # Created by Michael Abood on 04/19/20
 #
 #    This file is part of Home Control.
@@ -27,6 +27,3 @@ CONFIG_DIR_ENV = "CONFIG_DIR"
 
 # Config sections
 CONFIG_SECTION_LOGGING = 'LOGGING'
-CONFIG_SECTION_BASE_SERVER = 'BASE_SERVER'
-CONFIG_SECTION_SERVICES = 'SERVICES'
-CONFIG_SECTION_SENSORS = 'SENSORS'

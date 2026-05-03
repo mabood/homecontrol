@@ -23,7 +23,7 @@ import os
 import logging
 import utils
 import constants
-from services import ServiceManager, Chime
+from services import Chime
 from configparser import ConfigParser
 from flask import Flask
 
@@ -84,10 +84,6 @@ def setup():
             config.read(override_config_file)
         utils.setup_logger(app_name, log_directory, config[constants.CONFIG_SECTION_LOGGING])
 
-        # Start agent services
-        # TODO: generalize services for base and agent
-        # services = ServiceManager(config)
-        # services.start_services()
     except Exception as e:
         logging.error('%s interrupted due to exception: %s', app_name, e)
         sys.exit(3)
