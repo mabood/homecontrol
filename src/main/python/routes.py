@@ -24,6 +24,7 @@ import datetime
 import constants
 from flask import Blueprint
 from services import Chime
+from app import Base
 
 route_blueprint = Blueprint('route_blueprint', __name__)
 
