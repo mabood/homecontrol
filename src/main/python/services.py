@@ -63,11 +63,7 @@ class SwitchbotController:
 
         # 1. Put ALL the setup inside the async function
         async def perform_action():
-            # Try new bleak format, fall back to old format
-            try:
-                ble_device = BLEDevice(mac_address, name, None, 0)
-            except TypeError:
-                ble_device = BLEDevice(mac_address, name, None)
+            ble_device = BLEDevice(mac_address, name, None, 0)
             
             # Initialize the bot INSIDE the async function
             bot = Switchbot(device=ble_device)
