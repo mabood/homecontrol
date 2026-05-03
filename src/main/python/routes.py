@@ -39,7 +39,7 @@ def doorbell():
     else:
         return "<p>No Chime Configured</p>"
 
-@app.route('/switchbot/<name>/<action>', methods=['POST'])
+@route_blueprint.route('/switchbot/<name>/<action>', methods=['POST'])
 async def operate_switch(name, action):
     try:
         # Pass the name and action to the class instance. 

@@ -26,6 +26,8 @@ import miniaudio
 from switchbot import Switchbot
 
 class Chime(object):
+    _stream = None
+    _device = None
 
     def __init__(self, config, resources_dir, filename):
         capabilities = config[constants.CONFIG_SECTION_CAPABILITIES]
@@ -33,15 +35,15 @@ class Chime(object):
             logging.error('Cannot play \'%s\' - speaker is not enabled in configuration. See README for setup instructions', filename)
             return None
         self.resources_dir = resources_dir
-        self.stream = miniaudio.stream_file(os.path.join(resources_dir, filename))
-        self.device = miniaudio.PlaybackDevice()
+        self._stream = miniaudio.stream_file(os.path.join(resources_dir, filename))
+        self._device = miniaudio.PlaybackDevice()
 
     def ring(self):
-        if self.device is not None:
+        if self._device is not None:
             # Plays the sound file in a background thread
-            self.device.start(self.stream)
+            self._device.start(self._stream)
 
-class SwitchbotService:
+class SwitchbotController:
     def __init__(self, config: dict):
         """
         Initializes the service and pre-loads the device mappings 
