@@ -25,6 +25,9 @@ import sensors
 import miniaudio
 
 class Chime(object):
+    stream = None
+    device = None
+
     def __init__(self, config, resources_dir, filename):
         capabilities = config[constants.CONFIG_SECTION_CAPABILITIES]
         if not eval(capabilities['speaker_enabled']):
