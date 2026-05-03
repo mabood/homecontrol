@@ -18,8 +18,9 @@
 #    along with Home Control.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-import logging
 import os
+import logging
+import constants
 
 CONFIG_KEY_THERMOMETER_ENABLED = 'thermometer_enabled'
 CONFIG_KEY_THERMOMETER_DIR = 'thermometer_device_dir'
@@ -28,7 +29,8 @@ CONFIG_KEY_THERMOMETER_FILE = 'thermometer_device_file'
 
 class Thermometer(object):
     @staticmethod
-    def make(sensors_config):
+    def make(config):
+        sensors_config = config[constants.CONFIG_SECTION_CAPABILITIES]
         if not eval(sensors_config[CONFIG_KEY_THERMOMETER_ENABLED]):
             logging.error('Thermometer is not enabled in configs.')
             return None

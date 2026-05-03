@@ -24,12 +24,16 @@ import datetime
 import constants
 from flask import Blueprint
 from services import Chime
+from app import Base
 
 route_blueprint = Blueprint('route_blueprint', __name__)
-chime = Chime(os.getenv(constants.RESOURCES_DIR_ENV), 'computer_magic.wav')
 
 @route_blueprint.route('/doorbell')
 def doorbell():
     logging.info('Received doorbell ring at %s', datetime.datetime.now())
-    chime.ring()
-    return "<p>Ring Ring</p>"
+    chime = Base().doorbell_chime
+    if chime is not None:
+        chime.ring()
+        return "<p>Ring Ring</p>"
+    else:
+        return "<p>No Chime Configured</p>"

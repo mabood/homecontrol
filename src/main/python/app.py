@@ -28,7 +28,8 @@ from configparser import ConfigParser
 from flask import Flask
 
 def create_app():
-    setup()
+    base = Base()
+    base.setup()
 
     app = Flask(__name__)
 
@@ -36,56 +37,70 @@ def create_app():
     app.register_blueprint(route_blueprint)
 
     # Play chime to indicate startup complete
-    Chime(os.getenv(constants.RESOURCES_DIR_ENV), 'correct.wav').ring()
-    logging.info('Home Control %s launched' % os.getenv(constants.APP_NAME_ENV))
+    base.play_startup_chime()
+    logging.info('Home Control base launched')
 
     return app
 
-def setup():
-    # Resolve homecontrol root directory absolute path
-    root_directory = os.getenv(constants.HOMECONTROL_ROOT_ENV)
-    if not root_directory or not os.path.isdir(root_directory):
-        print('Unable to resolve homecontrol root directory from environment variables. Use launch.sh to run application')
-        sys.exit(1)
-
-    # Resolve app name
-    app_name = os.getenv(constants.APP_NAME_ENV)
-    if app_name is None:
-        print('Unable to resolve app name from environment variables. Use launch.sh to run application')
-        sys.exit(1)
-
-    # Resolve run dir
-    log_directory = os.getenv(constants.RUN_DIR_ENV)
-    if not log_directory or not os.path.isdir(log_directory):
-        print('Unable to resolve run directory from environment variables')
-        sys.exit(1)
-
-    # Resolve config dir
-    config_directory = os.getenv(constants.CONFIG_DIR_ENV)
-    if not config_directory or not os.path.isdir(config_directory):
-        print('Unable to resolve config directory from environment variables')
-        sys.exit(1)
-
-    # Resolve default config file
-    default_config_file = os.path.join(config_directory, ('%s-default.conf' % app_name))
-    if not default_config_file or not os.path.isfile(default_config_file):
-        print('Failed to resolve default config file at path %s' % default_config_file)
-        sys.exit(2)
+class Base:
+    _instance = None
+    config = None
+    doorbell_chime = None
     
-    # Resolve override config file
-    override_config_file = os.path.join(config_directory, ('%s-override.conf' % app_name))
-    if not override_config_file or not os.path.isfile(override_config_file):
-        override_config_file = None
-            
-    try:
-        config = ConfigParser()
-        config.read(default_config_file)
-        if override_config_file is not None:
-            config.read(override_config_file)
-        utils.setup_logger(app_name, log_directory, config[constants.CONFIG_SECTION_LOGGING])
-
-    except Exception as e:
-        logging.error('%s interrupted due to exception: %s', app_name, e)
-        sys.exit(3)
+    def __new__(cls):
+        if cls._instance is None:
+            cls._instance = super(Base, cls).__new__(cls)
+        return cls._instance
 
 
+    def setup(self):
+        # Resolve homecontrol root directory absolute path
+        root_directory = os.getenv(constants.HOMECONTROL_ROOT_ENV)
+        if not root_directory or not os.path.isdir(root_directory):
+            print('Unable to resolve homecontrol root directory from environment variables. Use launch.sh to run application')
+            sys.exit(1)
+
+        # Resolve app name
+        app_name = os.getenv(constants.APP_NAME_ENV)
+        if app_name is None:
+            print('Unable to resolve app name from environment variables. Use launch.sh to run application')
+            sys.exit(1)
+
+        # Resolve run dir
+        log_directory = os.getenv(constants.RUN_DIR_ENV)
+        if not log_directory or not os.path.isdir(log_directory):
+            print('Unable to resolve run directory from environment variables')
+            sys.exit(1)
+
+        # Resolve config dir
+        config_directory = os.getenv(constants.CONFIG_DIR_ENV)
+        if not config_directory or not os.path.isdir(config_directory):
+            print('Unable to resolve config directory from environment variables')
+            sys.exit(1)
+
+        # Resolve default config file
+        default_config_file = os.path.join(config_directory, ('%s-default.conf' % app_name))
+        if not default_config_file or not os.path.isfile(default_config_file):
+            print('Failed to resolve default config file at path %s' % default_config_file)
+            sys.exit(2)
+
+        config_hierarchy = [default_config_file]
+        
+        # Resolve override config file
+        override_config_file = os.path.join(config_directory, ('%s-override.conf' % app_name))
+        if override_config_file and os.path.isfile(override_config_file):
+            config_hierarchy.append(override_config_file)
+                
+        try:
+            self.config = ConfigParser()
+            self.config.read(config_hierarchy)
+            utils.setup_logger(app_name, log_directory, self.config)
+            doorbell_chime = Chime(self.config, os.getenv(constants.RESOURCES_DIR_ENV), 'computer_magic.wav')
+
+        except Exception as e:
+            logging.error('%s setup failed due to exception: %s', app_name, e)
+            sys.exit(3)
+
+
+    def play_startup_chime(self):
+        Chime(self.config, os.getenv(constants.RESOURCES_DIR_ENV), 'correct.wav').ring()

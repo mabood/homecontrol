@@ -18,16 +18,17 @@
 #    along with Home Control.  If not, see <https://www.gnu.org/licenses/>.
 #
 
-import logging
-from logging.handlers import RotatingFileHandler
 import os
+import logging
+import constants
+from logging.handlers import RotatingFileHandler
 
 CONFIG_KEY_LOG_VERBOSE = 'log_verbose'
 CONFIG_KEY_LOG_TO_CONSOLE = 'log_to_console'
 CONFIG_KEY_LOG_FILE_LIMIT = 'log_file_size_limit_bytes'
 
 
-def setup_logger(app_name, log_dir, logging_config):    
+def setup_logger(app_name, log_dir, config):    
     if not app_name:
         raise Exception('cannot create logger with app_name=None')
 
@@ -37,6 +38,7 @@ def setup_logger(app_name, log_dir, logging_config):
     if not os.path.isdir(log_dir):
         os.makedirs(log_dir)
     
+    logging_config = config[constants.CONFIG_SECTION_LOGGING]
     log_to_console = eval(logging_config[CONFIG_KEY_LOG_TO_CONSOLE])
     verbose = eval(logging_config[CONFIG_KEY_LOG_VERBOSE])
     log_file_limit = int(logging_config[CONFIG_KEY_LOG_FILE_LIMIT])
