@@ -27,7 +27,7 @@ $ sudo vim /etc/rc.local
 
 # Add the following line before exit 0:
 
-sudo -H -u pi sh -c 'cd  /absolute/path/to/homecontrol && ./scripts/launch.sh base' &
+sudo -H -u pi sh -c 'cd  /absolute/path/to/homecontrol && ./scripts/launch.sh' &
 ```
 
 ### USB Speaker Setup
@@ -104,11 +104,31 @@ Now that we have an active thermal sensor connected, add the sensor directory to
 ```
 $ cd path/to/homecontrol
 $ $ vim base/conf/base-override.conf
+
 [CAPABILITIES]
 thermometer_enabled=1
 thermometer_device_dir=/sys/bus/w1/devices/28-03189779d98f 
 thermometer_device_file=w1_slave
 ```
+
+### Switchbot Controller Setup
+To contol a BLE Switchbot button-pusher, your Raspberry Pi model must support Bluetooth Low Energy (BLE). Simply add the Switchbot device MAC address to the base config override file. Switchbot displays the BLE MAC address in the Switchbot app under "Device Info":
+ ```
+$ cd path/to/homecontrol
+$ $ vim base/conf/base-override.conf
+
+[SWITCHBOT]
+coffee_maker=AA:BB:CC:00:11:22
+```
+You may need to start bluetooth scanning Raspberry Pi:
+```
+sudo rfkill unblock bluetooth
+sudo systemctl restart bluetooth
+sudo systemctl enable bluetooth
+sudo bluetoothctl power on
+sudo bluetoothctl scan on
+```
+
 	
 ## Running Home Control
 Use the launch script to launch the intended Home Control application

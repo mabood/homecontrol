@@ -22,7 +22,8 @@ import os
 import logging
 import datetime
 import constants
-from flask import Blueprint
+import json
+from flask import Blueprint, jsonify
 from services import Chime
 from app import Base
 
@@ -37,3 +38,28 @@ def doorbell():
         return "<p>Ring Ring</p>"
     else:
         return "<p>No Chime Configured</p>"
+
+@route_blueprint.route('/switchbot/<name>/<action>', methods=['POST'])
+def operate_switch(name, action):
+    try:
+        # Standard function call
+        mac_address = Base().switchbot_controller.operate_switchbot(name, action) # <-- Removed 'await'
+        
+        return jsonify({
+            "status": "success",
+            "device": name,
+            "mac": mac_address,
+            "action": action
+        }), 200
+
+    except KeyError as ke:
+        return jsonify({"error": str(ke).strip("'")}), 404
+        
+    except ValueError as ve:
+        return jsonify({"error": str(ve)}), 400
+        
+    except Exception as e:
+        return jsonify({
+            "status": "error",
+            "message": str(e)
+        }), 500
