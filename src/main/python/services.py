@@ -46,10 +46,7 @@ class Chime(object):
             # Plays the sound file in a background thread
             self._device.start(self._stream)
 
-# --- THE BULLETPROOF WRAPPER ---
-# The rssi error: Even in version 0.37.0, if you pass a MAC address string, 
-# PySwitchbot gets a BLEDevice from the Pi's older bleak library 
-# (which lacks an rssi attribute), checks for device.rssi, and crashes.
+# Safely patches the missing properties from older bleak versions
 class PatchedBLEDevice(BLEDevice):
     def __init__(self, real_device):
         try:
@@ -83,54 +80,30 @@ class SwitchbotController:
         mac_address = self.devices[name]
 
         async def perform_action():
-            max_retries = 3
-            last_error = None
+            # 1. Scan for the device
+            real_device = await BleakScanner.find_device_by_address(mac_address, timeout=10.0)
             
-            for attempt in range(max_retries):
-                try:
-                    # 1. Scan for the device
-                    real_device = await BleakScanner.find_device_by_address(mac_address, timeout=10.0)
-                    
-                    # --- THE HAMMER FALLBACK ---
-                    if real_device is None:
-                        print(f"Device {mac_address} not found. Bouncing Bluetooth adapter...")
-                        os.system("sudo bluetoothctl power off && sudo bluetoothctl power on")
-                        await asyncio.sleep(3.0) 
-                        real_device = await BleakScanner.find_device_by_address(mac_address, timeout=10.0)
-                    # ---------------------------
+            if real_device is None:
+                raise Exception(f"Could not discover Switchbot at {mac_address}. Is it in range?")
 
-                    if real_device is None:
-                        raise Exception(f"Could not discover Switchbot at {mac_address}. Is it in range?")
+            # 2. Wrap the device to prevent library crashes and initialize
+            patched_device = PatchedBLEDevice(real_device)
+            bot = Switchbot(device=patched_device)
 
-                    # 2. Wrap it and initialize
-                    patched_device = PatchedBLEDevice(real_device)
-                    bot = Switchbot(device=patched_device)
+            # 3. Fire the command exactly once
+            if action == 'on':
+                await bot.turn_on()
+            elif action == 'off':
+                await bot.turn_off()
+            elif action == 'press':
+                await bot.press()
+            else:
+                raise ValueError(f"Invalid action '{action}'. Use 'on', 'off', or 'press'.")
 
-                    # 3. Perform the action
-                    if action == 'on':
-                        await bot.turn_on()
-                    elif action == 'off':
-                        await bot.turn_off()
-                    elif action == 'press':
-                        await bot.press()
-                    else:
-                        raise ValueError(f"Invalid action '{action}'. Use 'on', 'off', or 'press'.")
+            # 4. Allow BlueZ 2 seconds to gracefully close the Bluetooth socket
+            await asyncio.sleep(2.0)
 
-                    # --- SUCCESS! ---
-                    # Give BlueZ time to cleanly disconnect, then exit the function immediately.
-                    await asyncio.sleep(2.0)
-                    return 
-                    # ----------------
-
-                except Exception as e:
-                    # Catch the bytearray error (or any other BLE timeout) and try again
-                    last_error = e
-                    print(f"Attempt {attempt + 1}/{max_retries} failed: {e}. Retrying...")
-                    await asyncio.sleep(2.0)
-            
-            # If we loop 3 times and still fail, throw the error back to the Flask API
-            raise Exception(f"Action failed after {max_retries} attempts. Last error: {str(last_error)}")
-        
+        # Standard thread-safe event loop execution
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         
