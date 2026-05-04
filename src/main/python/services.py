@@ -45,6 +45,24 @@ class Chime(object):
             # Plays the sound file in a background thread
             self._device.start(self._stream)
 
+# This class acts exactly like a BLEDevice, but guarantees 
+# it has all the attributes newer PySwitchbot versions demand,
+# regardless of what version of bleak is actually installed.
+class CompatibleBLEDevice(BLEDevice):
+    def __init__(self, address, name):
+        # Try initializing with 4 arguments (modern bleak)
+        try:
+            super().__init__(address, name, None, -60)
+        except TypeError:
+            # Fall back to 3 arguments (older bleak)
+            super().__init__(address, name, None)
+        
+        # Because this is a subclass, Python automatically gives it a __dict__.
+        # This completely bypasses the strict __slots__ memory locks of the parent 
+        # class, allowing us to forcefully inject the missing attribute!
+        self.rssi = -60
+# -------------------------------
+
 class SwitchbotController:
     def __init__(self, config):
         """
@@ -60,19 +78,11 @@ class SwitchbotController:
         mac_address = self.devices[name]
 
         async def perform_action():
-            # --- THE MODERN INITIALIZATION ---
-            # 1. Wrap the MAC address in a Bluetooth Device object.
-            # We pass a fake signal strength (rssi=-60) to satisfy the library.
-            ble_device = BLEDevice(
-                address=mac_address, 
-                name=name, 
-                details=None, 
-                rssi=-60  
-            )
+            # 1. Use our custom wrapper to create the device
+            ble_device = CompatibleBLEDevice(address=mac_address, name=name)
             
-            # 2. Pass the object using 'device=' instead of 'mac='
+            # 2. Hand it to the bot
             bot = Switchbot(device=ble_device)
-            # ---------------------------------
 
             if action == 'on':
                 await bot.turn_on()
