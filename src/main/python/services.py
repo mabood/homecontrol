@@ -24,6 +24,7 @@ import constants
 import sensors
 import miniaudio
 import asyncio
+from bleak.backends.device import BLEDevice
 from switchbot import Switchbot
 
 class Chime(object):
@@ -45,26 +46,33 @@ class Chime(object):
             self._device.start(self._stream)
 
 class SwitchbotController:
-    _devices = None
-
     def __init__(self, config):
         """
         Initializes the service and pre-loads the device mappings 
         from the application configuration.
         """
-        self._devices = dict(config[constants.CONFIG_SECTION_SWITCHBOT]) if config.has_section(constants.CONFIG_SECTION_SWITCHBOT) else {}
+        self.devices = dict(config[constants.CONFIG_SECTION_SWITCHBOT]) if config.has_section(constants.CONFIG_SECTION_SWITCHBOT) else {}
 
     def operate_switchbot(self, name: str, action: str) -> str:
-        # 1. Look up the MAC address
-        if name not in self._devices:
+        if name not in self.devices:
             raise KeyError(f"Device '{name}' not found in config")
             
-        mac_address = self._devices[name]
+        mac_address = self.devices[name]
 
-        # 2. Define the async hardware operation
         async def perform_action():
-            # The beautiful, simple initialization!
-            bot = Switchbot(mac=mac_address)
+            # --- THE MODERN INITIALIZATION ---
+            # 1. Wrap the MAC address in a Bluetooth Device object.
+            # We pass a fake signal strength (rssi=-60) to satisfy the library.
+            ble_device = BLEDevice(
+                address=mac_address, 
+                name=name, 
+                details=None, 
+                rssi=-60  
+            )
+            
+            # 2. Pass the object using 'device=' instead of 'mac='
+            bot = Switchbot(device=ble_device)
+            # ---------------------------------
 
             if action == 'on':
                 await bot.turn_on()
@@ -75,15 +83,13 @@ class SwitchbotController:
             else:
                 raise ValueError(f"Invalid action '{action}'. Use 'on', 'off', or 'press'.")
 
-        # 3. Create a clean event loop for this specific Flask background thread
+        # Safely create a new event loop for this Flask thread
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         
         try:
-            # Run the Bluetooth transmission synchronously
             loop.run_until_complete(perform_action())
         finally:
-            # Always clean up the loop to prevent memory leaks
             loop.close()
             
         return mac_address
