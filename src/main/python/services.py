@@ -72,54 +72,56 @@ class SwitchbotController:
         from the application configuration.
         """
         self.devices = dict(config[constants.CONFIG_SECTION_SWITCHBOT]) if config.has_section(constants.CONFIG_SECTION_SWITCHBOT) else {}
+        
+        if len(devices) != 0:
+            # 1. Create a dedicated event loop for Bluetooth operations
+            self.loop = asyncio.new_event_loop()
+            
+            # 2. Start it in a background thread that NEVER dies
+            self.ble_thread = threading.Thread(target=self._start_background_loop, args=(self.loop,), daemon=True)
+            self.ble_thread.start()
+
+    def _start_background_loop(self, loop):
+        """This runs forever in the background, keeping bleak's D-Bus connections healthy."""
+        asyncio.set_event_loop(loop)
+        loop.run_forever()
+
+    async def _async_operate(self, name: str, action: str) -> str:
+        """The actual asynchronous hardware logic running on the background thread."""
+        mac_address = self.devices[name]
+
+        real_device = await BleakScanner.find_device_by_address(mac_address, timeout=10.0)
+        
+        if real_device is None:
+            raise Exception(f"Could not discover Switchbot at {mac_address}. Is it in range?")
+
+        patched_device = PatchedBLEDevice(real_device)
+        bot = Switchbot(device=patched_device)
+
+        if action == 'on':
+            await bot.turn_on()
+        elif action == 'off':
+            await bot.turn_off()
+        elif action == 'press':
+            await bot.press()
+        else:
+            raise ValueError(f"Invalid action '{action}'. Use 'on', 'off', or 'press'.")
+
+        # Give BlueZ a moment to process the D-Bus disconnection gracefully
+        await asyncio.sleep(1.0)
+        return mac_address
 
     def operate_switchbot(self, name: str, action: str) -> str:
+        """The synchronous method called by your Flask route."""
         if name not in self.devices:
             raise KeyError(f"Device '{name}' not found in config")
             
-        mac_address = self.devices[name]
-
-        async def perform_action():
-            # 1. Scan for the device
-            real_device = await BleakScanner.find_device_by_address(mac_address, timeout=10.0)
-            
-            if real_device is None:
-                raise Exception(f"Could not discover Switchbot at {mac_address}. Is it in range?")
-
-            # 2. Wrap the device and initialize
-            patched_device = PatchedBLEDevice(real_device)
-            bot = Switchbot(device=patched_device)
-
-            try:
-                # 3. Fire the command exactly once
-                if action == 'on':
-                    await bot.turn_on()
-                elif action == 'off':
-                    await bot.turn_off()
-                elif action == 'press':
-                    await bot.press()
-                else:
-                    raise ValueError(f"Invalid action '{action}'. Use 'on', 'off', or 'press'.")
-            
-            finally:
-                # --- THE STATE CLEANUP FIX ---
-                # Explicitly tell the Switchbot we are done so it resumes broadcasting.
-                # We use hasattr just to be safe across different PySwitchbot versions.
-                if hasattr(bot, 'disconnect'):
-                    await bot.disconnect()
-                
-                # Give the Linux Bluetooth daemon 1 second to fully process 
-                # the disconnect socket closure before we destroy the Python loop.
-                await asyncio.sleep(1.0)
-                # -----------------------------
-
-        # Standard thread-safe event loop execution
-        loop = asyncio.new_event_loop()
-        asyncio.set_event_loop(loop)
+        # 3. Hand the task over to the permanent background thread safely
+        future = asyncio.run_coroutine_threadsafe(
+            self._async_operate(name, action), 
+            self.loop
+        )
         
-        try:
-            loop.run_until_complete(perform_action())
-        finally:
-            loop.close()
-            
-        return mac_address
+        # 4. Block the Flask web thread until the background thread finishes
+        # This will either return the mac_address, or raise any Exceptions that occurred
+        return future.result()
