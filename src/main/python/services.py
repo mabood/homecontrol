@@ -24,6 +24,7 @@ import constants
 import sensors
 import miniaudio
 import asyncio
+import threading
 from bleak import BleakScanner
 from bleak.backends.device import BLEDevice
 from switchbot import Switchbot
