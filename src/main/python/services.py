@@ -25,6 +25,7 @@ import sensors
 import miniaudio
 import asyncio
 from bleak import BleakScanner
+from bleak.backends.device import BLEDevice
 from switchbot import Switchbot
 
 class Chime(object):
@@ -45,6 +46,34 @@ class Chime(object):
             # Plays the sound file in a background thread
             self._device.start(self._stream)
 
+# --- THE BULLETPROOF WRAPPER ---
+# The rssi error: Even in version 0.37.0, if you pass a MAC address string, 
+# PySwitchbot gets a BLEDevice from the Pi's older bleak library 
+# (which lacks an rssi attribute), checks for device.rssi, and crashes.
+class PatchedBLEDevice(BLEDevice):
+    def __init__(self, real_device):
+        # We pass the REAL details dictionary from Linux to prevent the 'NoneType' error
+        try:
+            # Try modern bleak format
+            super().__init__(
+                real_device.address, 
+                real_device.name, 
+                real_device.details, 
+                getattr(real_device, 'rssi', -60)
+            )
+        except TypeError:
+            # Fall back to older bleak format
+            super().__init__(
+                real_device.address, 
+                real_device.name, 
+                real_device.details
+            )
+        
+        # Because we subclassed, we bypass the __slots__ memory lock 
+        # and can force the rssi attribute onto the object!
+        self.rssi = getattr(real_device, 'rssi', -60)
+# -------------------------------
+
 class SwitchbotController:
     def __init__(self, config):
         """
@@ -60,19 +89,18 @@ class SwitchbotController:
         mac_address = self.devices[name]
 
         async def perform_action():
-            # 1. SCAN FOR THE DEVICE FIRST
-            # This asks the OS to scan the airwaves and build a real, 
-            # fully-fleshed out BLEDevice object containing all the Linux routing data.
-            # (Note: This might take a few seconds to find the device).
-            ble_device = await BleakScanner.find_device_by_address(mac_address, timeout=10.0)
+            # 1. Let Linux find the REAL device (Gets the actual routing 'details')
+            real_device = await BleakScanner.find_device_by_address(mac_address, timeout=10.0)
             
-            if ble_device is None:
+            if real_device is None:
                 raise Exception(f"Could not discover Switchbot at {mac_address}. Is it in range?")
 
-            # 2. Hand the REAL device to PySwitchbot
-            bot = Switchbot(device=ble_device)
+            # 2. Wrap it to forcefully attach the missing 'rssi' attribute
+            patched_device = PatchedBLEDevice(real_device)
 
-            # 3. Perform the action
+            # 3. Hand the heavily armored object to PySwitchbot using 'device='
+            bot = Switchbot(device=patched_device)
+
             if action == 'on':
                 await bot.turn_on()
             elif action == 'off':

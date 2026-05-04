@@ -112,7 +112,7 @@ thermometer_device_file=w1_slave
 ```
 
 ### Switchbot Controller Setup
-To contol a BLE Switchbot button-pusher, your Raspberry Pi model must support Bluetooth Low Energy (BLE). Simply add the Switchbot device MAC address to the base config override file:
+To contol a BLE Switchbot button-pusher, your Raspberry Pi model must support Bluetooth Low Energy (BLE). Simply add the Switchbot device MAC address to the base config override file. Switchbot displays the BLE MAC address in the Switchbot app under "Device Info":
  ```
 $ cd path/to/homecontrol
 $ $ vim base/conf/base-override.conf
@@ -120,7 +120,14 @@ $ $ vim base/conf/base-override.conf
 [SWITCHBOT]
 coffee_maker=AA:BB:CC:00:11:22
 ```
-Switchbot displays the BLE MAC address in the Switchbot app under "Device Info."
+You may need to start bluetooth scanning Raspberry Pi:
+```
+sudo rfkill unblock bluetooth
+sudo systemctl restart bluetooth
+sudo systemctl enable bluetooth
+sudo bluetoothctl power on
+sudo bluetoothctl scan on
+```
 
 	
 ## Running Home Control
