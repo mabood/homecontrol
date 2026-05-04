@@ -86,22 +86,32 @@ class SwitchbotController:
             if real_device is None:
                 raise Exception(f"Could not discover Switchbot at {mac_address}. Is it in range?")
 
-            # 2. Wrap the device to prevent library crashes and initialize
+            # 2. Wrap the device and initialize
             patched_device = PatchedBLEDevice(real_device)
             bot = Switchbot(device=patched_device)
 
-            # 3. Fire the command exactly once
-            if action == 'on':
-                await bot.turn_on()
-            elif action == 'off':
-                await bot.turn_off()
-            elif action == 'press':
-                await bot.press()
-            else:
-                raise ValueError(f"Invalid action '{action}'. Use 'on', 'off', or 'press'.")
-
-            # 4. Allow BlueZ 2 seconds to gracefully close the Bluetooth socket
-            await asyncio.sleep(2.0)
+            try:
+                # 3. Fire the command exactly once
+                if action == 'on':
+                    await bot.turn_on()
+                elif action == 'off':
+                    await bot.turn_off()
+                elif action == 'press':
+                    await bot.press()
+                else:
+                    raise ValueError(f"Invalid action '{action}'. Use 'on', 'off', or 'press'.")
+            
+            finally:
+                # --- THE STATE CLEANUP FIX ---
+                # Explicitly tell the Switchbot we are done so it resumes broadcasting.
+                # We use hasattr just to be safe across different PySwitchbot versions.
+                if hasattr(bot, 'disconnect'):
+                    await bot.disconnect()
+                
+                # Give the Linux Bluetooth daemon 1 second to fully process 
+                # the disconnect socket closure before we destroy the Python loop.
+                await asyncio.sleep(1.0)
+                # -----------------------------
 
         # Standard thread-safe event loop execution
         loop = asyncio.new_event_loop()
@@ -113,4 +123,3 @@ class SwitchbotController:
             loop.close()
             
         return mac_address
-
