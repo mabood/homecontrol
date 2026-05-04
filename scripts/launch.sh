@@ -32,9 +32,6 @@ function launch {
     activate_venv;
     # Launch the server in the background and capture the PID
     nohup flask --app "${FLASK_APP:?}" run --host=0.0.0.0 >"${RUN_DIR:?}"/launch.log 2>&1 & echo $! > "${RUN_PID_FILE:?}"
-
-    # Stream the log file to the terminal
-    tail -f "${RUN_DIR:?}"/launch.log
 }
 
 # Set environment variables
