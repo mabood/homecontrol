@@ -73,7 +73,7 @@ class SwitchbotController:
         """
         self.devices = dict(config[constants.CONFIG_SECTION_SWITCHBOT]) if config.has_section(constants.CONFIG_SECTION_SWITCHBOT) else {}
         
-        if len(devices) != 0:
+        if len(self.devices) != 0:
             # 1. Create a dedicated event loop for Bluetooth operations
             self.loop = asyncio.new_event_loop()
             
