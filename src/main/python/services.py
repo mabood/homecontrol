@@ -24,7 +24,7 @@ import constants
 import sensors
 import miniaudio
 import asyncio
-from bleak.backends.device import BLEDevice
+from bleak import BleakScanner
 from switchbot import Switchbot
 
 class Chime(object):
@@ -45,24 +45,6 @@ class Chime(object):
             # Plays the sound file in a background thread
             self._device.start(self._stream)
 
-# This class acts exactly like a BLEDevice, but guarantees 
-# it has all the attributes newer PySwitchbot versions demand,
-# regardless of what version of bleak is actually installed.
-class CompatibleBLEDevice(BLEDevice):
-    def __init__(self, address, name):
-        # Try initializing with 4 arguments (modern bleak)
-        try:
-            super().__init__(address, name, None, -60)
-        except TypeError:
-            # Fall back to 3 arguments (older bleak)
-            super().__init__(address, name, None)
-        
-        # Because this is a subclass, Python automatically gives it a __dict__.
-        # This completely bypasses the strict __slots__ memory locks of the parent 
-        # class, allowing us to forcefully inject the missing attribute!
-        self.rssi = -60
-# -------------------------------
-
 class SwitchbotController:
     def __init__(self, config):
         """
@@ -78,12 +60,19 @@ class SwitchbotController:
         mac_address = self.devices[name]
 
         async def perform_action():
-            # 1. Use our custom wrapper to create the device
-            ble_device = CompatibleBLEDevice(address=mac_address, name=name)
+            # 1. SCAN FOR THE DEVICE FIRST
+            # This asks the OS to scan the airwaves and build a real, 
+            # fully-fleshed out BLEDevice object containing all the Linux routing data.
+            # (Note: This might take a few seconds to find the device).
+            ble_device = await BleakScanner.find_device_by_address(mac_address, timeout=10.0)
             
-            # 2. Hand it to the bot
+            if ble_device is None:
+                raise Exception(f"Could not discover Switchbot at {mac_address}. Is it in range?")
+
+            # 2. Hand the REAL device to PySwitchbot
             bot = Switchbot(device=ble_device)
 
+            # 3. Perform the action
             if action == 'on':
                 await bot.turn_on()
             elif action == 'off':
