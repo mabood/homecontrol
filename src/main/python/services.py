@@ -52,9 +52,7 @@ class Chime(object):
 # (which lacks an rssi attribute), checks for device.rssi, and crashes.
 class PatchedBLEDevice(BLEDevice):
     def __init__(self, real_device):
-        # We pass the REAL details dictionary from Linux to prevent the 'NoneType' error
         try:
-            # Try modern bleak format
             super().__init__(
                 real_device.address, 
                 real_device.name, 
@@ -62,15 +60,11 @@ class PatchedBLEDevice(BLEDevice):
                 getattr(real_device, 'rssi', -60)
             )
         except TypeError:
-            # Fall back to older bleak format
             super().__init__(
                 real_device.address, 
                 real_device.name, 
                 real_device.details
             )
-        
-        # Because we subclassed, we bypass the __slots__ memory lock 
-        # and can force the rssi attribute onto the object!
         self.rssi = getattr(real_device, 'rssi', -60)
 # -------------------------------
 
@@ -89,18 +83,28 @@ class SwitchbotController:
         mac_address = self.devices[name]
 
         async def perform_action():
-            # 1. Let Linux find the REAL device (Gets the actual routing 'details')
+            # 1. Scan for the device
             real_device = await BleakScanner.find_device_by_address(mac_address, timeout=10.0)
             
+            # --- THE HAMMER FALLBACK ---
+            # If the Pi's Bluetooth adapter gets completely stuck and can't find the device,
+            # we forcefully bounce the adapter without needing a full system reboot.
+            if real_device is None:
+                print(f"Device {mac_address} not found. Bouncing Bluetooth adapter...")
+                os.system("sudo bluetoothctl power off && sudo bluetoothctl power on")
+                await asyncio.sleep(3.0) # Give the radio a moment to warm up
+                # Try one more time
+                real_device = await BleakScanner.find_device_by_address(mac_address, timeout=10.0)
+            # ---------------------------
+
             if real_device is None:
                 raise Exception(f"Could not discover Switchbot at {mac_address}. Is it in range?")
 
-            # 2. Wrap it to forcefully attach the missing 'rssi' attribute
+            # 2. Wrap it and initialize
             patched_device = PatchedBLEDevice(real_device)
-
-            # 3. Hand the heavily armored object to PySwitchbot using 'device='
             bot = Switchbot(device=patched_device)
 
+            # 3. Perform the action
             if action == 'on':
                 await bot.turn_on()
             elif action == 'off':
@@ -110,7 +114,12 @@ class SwitchbotController:
             else:
                 raise ValueError(f"Invalid action '{action}'. Use 'on', 'off', or 'press'.")
 
-        # Safely create a new event loop for this Flask thread
+            # --- THE GRACEFUL TEARDOWN FIX ---
+            # Give BlueZ time to fully transmit the disconnect packets 
+            # before we destroy the Python event loop!
+            await asyncio.sleep(2.0)
+            # ---------------------------------
+
         loop = asyncio.new_event_loop()
         asyncio.set_event_loop(loop)
         
